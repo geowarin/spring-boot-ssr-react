@@ -1,5 +1,6 @@
 import geowarin.bootwebpack.v8.V8ScriptTemplateViewResolver
 import geowarin.bootwebpack.webpack.AssetStore
+import geowarin.bootwebpack.webpack.WebpackConnection
 import geowarin.bootwebpack.webpack.WebpackResourceResolver
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -22,6 +23,9 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
     open fun assetStore(): AssetStore {
         return AssetStore()
     }
+
+    @Bean
+    open fun webpackConnection(): WebpackConnection = WebpackConnection(assetStore())
 
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
         registry.addResourceHandler("/**")

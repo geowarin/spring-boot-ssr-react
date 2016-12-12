@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 @Component
 open class AssetStore {
-    var assets: MutableList<Asset> = mutableListOf()
+    var assets: MutableMap<String, Asset> = mutableMapOf<String, Asset>()
 
     init {
         addBuiltinAsset("client.js")
@@ -16,7 +16,8 @@ open class AssetStore {
     }
 
     private fun addBuiltinAsset(assetName: String) {
-        assets.add(
+        assets.put(
+                assetName,
                 Asset(
                         name= assetName,
                         source = ClassPathResource("scripts/$assetName").file.readText()
@@ -26,12 +27,11 @@ open class AssetStore {
     }
 
     fun store(assets: List<Asset>) {
-//        this.assets = assets
+        assets.forEach { this.assets.put(it.name, it) }
     }
 
     fun getAsset(requestPath: String): Asset? {
-        return assets
-                .find { it.name == requestPath }
+        return assets.get(requestPath)
     }
 
     fun getAssetAsResource(requestPath: String, modulePath: String?): Resource? {

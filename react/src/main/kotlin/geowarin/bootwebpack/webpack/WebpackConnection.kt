@@ -5,9 +5,7 @@ import io.socket.client.Socket
 import org.json.JSONArray
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
-import org.springframework.stereotype.Component
 
-@Component
 open class WebpackConnection constructor(private var assetStore: AssetStore) : ApplicationListener<ContextRefreshedEvent> {
 
     override fun onApplicationEvent(contextRefreshedEvent: ContextRefreshedEvent) {

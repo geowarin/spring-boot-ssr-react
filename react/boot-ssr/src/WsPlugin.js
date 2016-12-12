@@ -17,10 +17,11 @@ class WsPlugin {
     this.emitAssets(socket);
   }
 
-  emitAssets(socket) {
+  emitAssets(socket, assets) {
     const destination = socket ? socket : this.ws;
-    console.log('published', Object.keys(this.assets));
-    destination.emit('wp-emit', values(this.assets));
+    const updatedAssets = values(assets || this.assets);
+    console.log(updatedAssets.map(a => a.name));
+    destination.emit('wp-emit', updatedAssets);
   }
 
   apply(compiler) {
@@ -28,14 +29,22 @@ class WsPlugin {
     compiler.plugin('done', stats => {
       const assets = stats.compilation.assets;
       const assetNames = Object.keys(assets);
-      assetNames.forEach(assetName => {
+
+      const newAssets = assetNames.reduce((res, assetName) => {
         const asset = assets[assetName];
-        this.assets[assetName] = {
-          name: assetName,
-          source: asset.source()
-        }
+        return Object.assign(res, {
+          [assetName]: {
+            name: assetName,
+            source: asset.source()
+          }
+        })
+      }, {});
+
+      values(newAssets).forEach(asset => {
+        this.assets[asset.name] = asset;
       });
-      this.emitAssets();
+
+      this.emitAssets(null, newAssets);
     });
 
     // compiler.plugin('invalid', () => { });

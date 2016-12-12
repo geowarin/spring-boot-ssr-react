@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse
 
 class V8ScriptTemplateView() : AbstractUrlBasedView() {
     private var resourceLoader: ResourceLoader? = null
+    private val CHARSET = Charset.forName("UTF-8")
 
     override fun setContentType(contentType: String) {
         super.setContentType(contentType)
@@ -36,7 +37,6 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
   </head>
   <body>
   <div id="app">{renderedHtml}</div>
-  <script type="text/javascript" src="vendors.js"></script>
   <script type="text/javascript" src="{componentPath}?modulePath=window.currentComponent"></script>
   <script type="text/javascript">
     window.currentProps = {componentProps};
@@ -55,7 +55,6 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         }
 
         val v8Script = V8Script(getAssetStore())
-        v8Script.execute("vendors.js")
         val rendererFun = v8Script.executeAndGet("renderer.js") as V8Function
         val component = v8Script.executeAndGet(url) as V8Function
 
@@ -85,9 +84,5 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
 
     private fun getAssetStore(): AssetStore {
         return beanOfTypeIncludingAncestors(applicationContext, AssetStore::class.java)
-    }
-
-    companion object {
-        private val CHARSET = Charset.forName("UTF-8")
     }
 }

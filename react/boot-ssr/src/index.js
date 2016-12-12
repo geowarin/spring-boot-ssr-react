@@ -28,7 +28,15 @@ const config = (entries, rootDir) => ({
             require.resolve('babel-preset-react')
           ],
           plugins: [
-            require.resolve('babel-plugin-transform-object-rest-spread')
+            require.resolve('babel-plugin-transform-object-rest-spread'),
+            [
+              require.resolve('babel-plugin-module-resolver'),
+              {
+                alias: {
+                  react: require.resolve('react')
+                }
+              }
+            ]
           ]
         }
       }
@@ -63,33 +71,32 @@ function bootSsr(userProjectDir) {
   }
   compiler.outputFileSystem = new MemoryFileSystem();
 
-  compiler.run((err, stats) => {
-    if (err) {
-      console.log('toto');
-      console.error(err.message);
-      process.exit(1);
-    }
-
-    console.log(stats.toString({
-      children: true,
-      chunks: false,
-      colors: true,
-      modules: false
-    }));
-  });
-  // const watchOptions = {
-  //   aggregateTimeout: 300
-  // };
-  // compiler.watch(watchOptions, (err, stats) => {
-  //
+  // compiler.run((err, stats) => {
   //   if (err) {
   //     console.log('toto');
   //     console.error(err.message);
   //     process.exit(1);
   //   }
   //
-  //   console.log('compiled!');
+  //   console.log(stats.toString({
+  //     children: true,
+  //     chunks: false,
+  //     colors: true,
+  //     modules: false
+  //   }));
   // });
+  const watchOptions = {
+    aggregateTimeout: 300
+  };
+  compiler.watch(watchOptions, (err, stats) => {
+
+    if (err) {
+      console.error(err.message);
+      process.exit(1);
+    }
+
+    console.log('compiled!');
+  });
 }
 
 module.exports = bootSsr;
