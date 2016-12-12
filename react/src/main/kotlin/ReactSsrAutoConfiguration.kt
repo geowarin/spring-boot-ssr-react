@@ -1,6 +1,6 @@
 import geowarin.bootwebpack.v8.V8ScriptTemplateViewResolver
 import geowarin.bootwebpack.webpack.AssetStore
-import geowarin.bootwebpack.webpack.WebpackResolver
+import geowarin.bootwebpack.webpack.WebpackResourceResolver
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
@@ -27,7 +27,7 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:/static/")
                 .resourceChain(false)
-                .addResolver(WebpackResolver(assetStore()))
+                .addResolver(WebpackResourceResolver(assetStore()))
     }
 }
 

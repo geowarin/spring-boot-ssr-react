@@ -17,9 +17,9 @@ class V8Script(val assetStore: AssetStore) {
     }
 
     fun executeAndGet(path: String): V8Value {
-        val scriptSrc = assetStore.getAssetSource(path)
+        val scriptSrc = assetStore.getAssetSource(path) ?: throw IllegalStateException("Could not find script $path")
         val module = v8.executeScript(scriptSrc) as V8Object
-        toClean.add(module);
+        toClean.add(module)
         val default = module.get("default") as V8Function
         toClean.add(default)
         return default

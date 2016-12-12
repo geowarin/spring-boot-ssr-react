@@ -5,7 +5,7 @@ import org.springframework.web.servlet.resource.ResourceResolver
 import org.springframework.web.servlet.resource.ResourceResolverChain
 import javax.servlet.http.HttpServletRequest
 
-open class WebpackResolver(val assetStore: AssetStore) : ResourceResolver {
+open class WebpackResourceResolver(val assetStore: AssetStore) : ResourceResolver {
     private val ignoredPaths = listOf("api")
 
     override fun resolveResource(request: HttpServletRequest, requestPath: String, locations: List<Resource>, chain: ResourceResolverChain): Resource? {

@@ -1,15 +1,32 @@
 package geowarin.bootwebpack.webpack
 
 import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
 
 @Component
 open class AssetStore {
-    var assets: List<Asset> = emptyList()
+    var assets: MutableList<Asset> = mutableListOf()
+
+    init {
+        addBuiltinAsset("client.js")
+        addBuiltinAsset("renderer.js")
+        addBuiltinAsset("vendors.js")
+    }
+
+    private fun addBuiltinAsset(assetName: String) {
+        assets.add(
+                Asset(
+                        name= assetName,
+                        source = ClassPathResource("scripts/$assetName").file.readText()
+                )
+
+        )
+    }
 
     fun store(assets: List<Asset>) {
-        this.assets = assets
+//        this.assets = assets
     }
 
     fun getAsset(requestPath: String): Asset? {
@@ -26,12 +43,12 @@ open class AssetStore {
         return null
     }
 
-    fun getAssetSource(requestPath: String): String {
+    fun getAssetSource(requestPath: String): String? {
         val asset = getAsset(requestPath)
         if (asset != null) {
             return asset.source
         }
-        throw IllegalStateException("Could not find resource $requestPath")
+        return null
     }
 }
 

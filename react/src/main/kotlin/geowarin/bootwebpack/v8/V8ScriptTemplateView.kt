@@ -36,7 +36,7 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
   </head>
   <body>
   <div id="app">{renderedHtml}</div>
-  <script type="text/javascript" src="common.js"></script>
+  <script type="text/javascript" src="vendors.js"></script>
   <script type="text/javascript" src="{componentPath}?modulePath=window.currentComponent"></script>
   <script type="text/javascript">
     window.currentProps = {componentProps};
@@ -55,7 +55,6 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         }
 
         val v8Script = V8Script(getAssetStore())
-        v8Script.execute("common.js")
         v8Script.execute("vendors.js")
         val rendererFun = v8Script.executeAndGet("renderer.js") as V8Function
         val component = v8Script.executeAndGet(url) as V8Function
@@ -75,22 +74,6 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
     private fun isJsonContentType(request: HttpServletRequest) =
             StringUtils.hasText(request.contentType)
                     && MediaType.APPLICATION_JSON.isCompatibleWith(MediaType.parseMediaType(request.contentType))
-
-//    private fun getResource(location: String): Resource {
-//        val resource = this.resourceLoader!!.getResource(location)
-//        if (!resource.exists()) {
-//            throw IllegalStateException(String.format("Resource %s not found", location))
-//        }
-//
-//        return resource
-//    }
-//
-//    @Throws(IOException::class)
-//    private fun getResourceAsString(path: String): String {
-//        val resource = getResource(path)
-//        val reader = InputStreamReader(resource.inputStream, CHARSET)
-//        return FileCopyUtils.copyToString(reader)
-//    }
 
     override fun initApplicationContext(context: ApplicationContext) {
         super.initApplicationContext(context)
