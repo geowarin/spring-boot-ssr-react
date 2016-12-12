@@ -8,6 +8,6 @@ public class IndexController {
 
     @GetMapping("/toto")
     public String index() {
-        return "index";
+        return "home";
     }
 }
