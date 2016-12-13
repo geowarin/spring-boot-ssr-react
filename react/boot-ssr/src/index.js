@@ -31,7 +31,11 @@ const config = (entries, rootDir) => ({
               require.resolve('babel-plugin-module-resolver'),
               {
                 alias: {
-                  react: require.resolve('react')
+                  react: require.resolve('react'),
+                  "react-dom": require.resolve('react-dom'),
+                  "react-dom/server": require.resolve('react-dom/server'),
+                  "axios": require.resolve('axios'),
+                  "little-loader": require.resolve('little-loader')
                 }
               }
             ]
@@ -40,6 +44,11 @@ const config = (entries, rootDir) => ({
       }
     ]
   },
+  plugins: [
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'common'
+    })
+  ],
   resolveLoader: {
     modules: [
       path.join(rootDir, 'node_modules'),
@@ -61,6 +70,8 @@ function getPagesEntry(pagesDir) {
 
 function createCompiler(rootDir, pagesDir, errorCallback) {
   const entries = getPagesEntry(pagesDir);
+  entries['client'] = path.join(rootDir, "src/client/client.js");
+  entries['renderer'] = path.join(rootDir, "src/server/renderer.js");
   let compiler = null;
   try {
     compiler = webpack(config(entries, rootDir));

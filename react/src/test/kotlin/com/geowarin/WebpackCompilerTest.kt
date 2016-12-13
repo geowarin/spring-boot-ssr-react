@@ -1,5 +1,6 @@
 package com.geowarin
 
+import geowarin.bootwebpack.webpack.CompilationError
 import geowarin.bootwebpack.webpack.CompilationSuccess
 import geowarin.bootwebpack.webpack.WebpackCompiler
 import org.amshove.kluent.shouldEqual
@@ -20,11 +21,10 @@ class WebpackCompilerTest {
         when (compilation) {
             is CompilationSuccess -> {
                 val assetsNames = compilation.assets.map { it.name }
-                assetsNames shouldEqual listOf("home.js")
+                assetsNames shouldEqual listOf("client.js", "renderer.js", "home.js", "common.js")
             }
-            else -> {
-                throw AssertionError("Got errors")
-            }
+            is CompilationError -> throw AssertionError("Got errors:\n${compilation.errorMessages.joinToString("\n")})}")
+            else -> throw AssertionError("Got errors")
         }
     }
 }

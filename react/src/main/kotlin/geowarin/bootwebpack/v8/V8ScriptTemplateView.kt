@@ -39,6 +39,7 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
   </head>
   <body>
   <div id="app">{renderedHtml}</div>
+  <script type="text/javascript" src="common.js"></script>
   <script type="text/javascript" src="{componentPath}?modulePath=window.currentComponent"></script>
   <script type="text/javascript">
     window.currentProps = {componentProps};
@@ -57,7 +58,7 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         }
 
         val v8Script = V8Script(getAssetStore())
-        v8Script.execute("vendors.js")
+        v8Script.execute("common.js")
         val rendererFun = v8Script.executeAndGet("renderer.js") as V8Function
         val component = v8Script.executeAndGet(url) as V8Function
 

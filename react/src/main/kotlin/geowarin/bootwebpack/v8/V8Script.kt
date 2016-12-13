@@ -28,7 +28,7 @@ class V8Script(val assetStore: AssetStore) {
     }
 
     fun execute(path: String) {
-        val scriptSrc = assetStore.getAssetSource(path)
+        val scriptSrc = assetStore.getAssetSource(path) ?: throw IllegalStateException("Could not find script $path")
         val obj = v8.executeScript(scriptSrc)
         if (obj is V8Value) {
             toClean.add(obj)

@@ -9,23 +9,6 @@ import org.springframework.stereotype.Component
 open class AssetStore {
     var assets: MutableMap<String, Asset> = mutableMapOf<String, Asset>()
 
-    init {
-        addBuiltinAsset("client.js")
-        addBuiltinAsset("renderer.js")
-        addBuiltinAsset("vendors.js")
-    }
-
-    private fun addBuiltinAsset(assetName: String) {
-        assets.put(
-                assetName,
-                Asset(
-                        name = assetName,
-                        source = ClassPathResource("scripts/$assetName").file.readText()
-                )
-
-        )
-    }
-
     fun store(assets: List<Asset>) {
         assets.forEach { this.assets.put(it.name, it) }
     }
