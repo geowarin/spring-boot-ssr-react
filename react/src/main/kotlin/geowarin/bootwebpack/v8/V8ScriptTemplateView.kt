@@ -4,8 +4,6 @@ import com.eclipsesource.v8.V8Function
 import com.fasterxml.jackson.databind.ObjectMapper
 import geowarin.bootwebpack.webpack.AssetStore
 import org.springframework.beans.factory.BeanFactoryUtils.beanOfTypeIncludingAncestors
-import org.springframework.context.ApplicationContext
-import org.springframework.core.io.ResourceLoader
 import org.springframework.http.MediaType
 import org.springframework.util.StringUtils
 import org.springframework.web.servlet.view.AbstractUrlBasedView
@@ -14,8 +12,12 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class V8ScriptTemplateView() : AbstractUrlBasedView() {
-    private var resourceLoader: ResourceLoader? = null
     private val CHARSET = Charset.forName("UTF-8")
+    private var assetStore: AssetStore? = null
+
+    constructor(assetStore: AssetStore) : this() {
+        this.assetStore = assetStore
+    }
 
     override fun setContentType(contentType: String) {
         super.setContentType(contentType)
@@ -55,6 +57,7 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         }
 
         val v8Script = V8Script(getAssetStore())
+        v8Script.execute("vendors.js")
         val rendererFun = v8Script.executeAndGet("renderer.js") as V8Function
         val component = v8Script.executeAndGet(url) as V8Function
 
@@ -74,15 +77,10 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
             StringUtils.hasText(request.contentType)
                     && MediaType.APPLICATION_JSON.isCompatibleWith(MediaType.parseMediaType(request.contentType))
 
-    override fun initApplicationContext(context: ApplicationContext) {
-        super.initApplicationContext(context)
-
-        if (this.resourceLoader == null) {
-            this.resourceLoader = applicationContext
-        }
-    }
-
     private fun getAssetStore(): AssetStore {
-        return beanOfTypeIncludingAncestors(applicationContext, AssetStore::class.java)
+        if (assetStore == null) {
+            this.assetStore = beanOfTypeIncludingAncestors(applicationContext, AssetStore::class.java)
+        }
+        return this.assetStore!!
     }
 }

@@ -1,6 +1,6 @@
 import React from "react";
-import App from "./App";
-import Router from './Router';
+import App from "../lib/App";
+import Router from '../lib/Router';
 import {renderToString} from "react-dom/server";
 
 export default function render(Component, model, url) {

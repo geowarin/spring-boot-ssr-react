@@ -19,7 +19,7 @@ open class AssetStore {
         assets.put(
                 assetName,
                 Asset(
-                        name= assetName,
+                        name = assetName,
                         source = ClassPathResource("scripts/$assetName").file.readText()
                 )
 
@@ -62,3 +62,5 @@ class WebpackResource(byteArray: ByteArray?, val fileName: String) : ByteArrayRe
         return 0
     }
 }
+
+data class Asset(val name: String, val source: String)

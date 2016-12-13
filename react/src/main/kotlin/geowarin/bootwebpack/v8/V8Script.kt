@@ -4,9 +4,28 @@ import com.eclipsesource.v8.*
 import com.eclipsesource.v8.utils.V8ObjectUtils
 import geowarin.bootwebpack.webpack.AssetStore
 
+internal class Console {
+    fun log(message: Any) {
+        println("[INFO] " + message)
+    }
+
+    fun error(message: Any) {
+        println("[ERROR] " + message)
+    }
+}
+
 class V8Script(val assetStore: AssetStore) {
     val toClean: MutableList<V8Value> = mutableListOf()
     val v8 = V8.createV8Runtime("window")
+
+    init {
+        val console = Console()
+        val v8Console = V8Object(v8)
+        v8.add("console", v8Console)
+        v8Console.registerJavaMethod(console, "log", "log", arrayOf<Class<*>>(Any::class.java))
+        v8Console.registerJavaMethod(console, "error", "error", arrayOf<Class<*>>(Any::class.java))
+        v8Console.release()
+    }
 
     fun execute(path: String) {
         val scriptSrc = assetStore.getAssetSource(path)

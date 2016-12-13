@@ -1,8 +1,8 @@
 import domReady from "domready";
 import {createElement} from "react";
 import {render} from "react-dom";
-import App from "../utils/App";
-import Router from '../utils/Router';
+import App from "../lib/App";
+import Router from '../lib/Router';
 
 domReady(() => {
 

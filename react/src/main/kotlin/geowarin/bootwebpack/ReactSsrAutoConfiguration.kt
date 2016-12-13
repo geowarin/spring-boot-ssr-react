@@ -1,3 +1,5 @@
+package geowarin.bootwebpack
+
 import geowarin.bootwebpack.v8.V8ScriptTemplateViewResolver
 import geowarin.bootwebpack.webpack.AssetStore
 import geowarin.bootwebpack.webpack.WebpackConnection

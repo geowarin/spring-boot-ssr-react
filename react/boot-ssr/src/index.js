@@ -1,7 +1,8 @@
-const path = require('path');
-const glob = require('glob');
+'use strict';
 
-const WsPlugin = require('./WsPlugin');
+const path = require('path');
+
+const glob = require('glob');
 const webpack = require('webpack');
 const MemoryFileSystem = require('memory-fs');
 
@@ -12,9 +13,6 @@ const config = (entries, rootDir) => ({
     path: path.join(__dirname, 'dist'),
     filename: '[name].js'
   },
-  plugins: [
-    new WsPlugin()
-  ],
   module: {
     loaders: [
       {
@@ -50,53 +48,64 @@ const config = (entries, rootDir) => ({
 });
 
 
-function bootSsr(userProjectDir) {
-
-  const rootDir = path.join(__dirname, '..');
-  let pagesDir = path.join(userProjectDir, 'pages');
-  let pages = glob.sync(pagesDir + '/**/*.js');
-  let entries = pages.reduce((entries, pagePath) => {
+function getPagesEntry(pagesDir) {
+  const pages = glob.sync(pagesDir + '/**/*.js');
+  const entries = pages.reduce((entries, pagePath) => {
     let pageName = path.basename(path.relative(pagesDir, pagePath), '.js');
     return Object.assign(entries, {
       [pageName]: pagePath
     })
   }, {});
+  return entries;
+}
 
+function createCompiler(rootDir, pagesDir, errorCallback) {
+  const entries = getPagesEntry(pagesDir);
   let compiler = null;
   try {
     compiler = webpack(config(entries, rootDir));
   } catch (e) {
-    console.log(e.message);
-    process.exit(1);
+    errorCallback(e.message);
+    return null;
   }
   compiler.outputFileSystem = new MemoryFileSystem();
+  return compiler;
+}
 
-  // compiler.run((err, stats) => {
-  //   if (err) {
-  //     console.log('toto');
-  //     console.error(err.message);
-  //     process.exit(1);
-  //   }
-  //
-  //   console.log(stats.toString({
-  //     children: true,
-  //     chunks: false,
-  //     colors: true,
-  //     modules: false
-  //   }));
-  // });
-  const watchOptions = {
-    aggregateTimeout: 300
-  };
-  compiler.watch(watchOptions, (err, stats) => {
+function bootSsr(userProjectDir, errorCallback, assetCallback) {
 
-    if (err) {
-      console.error(err.message);
-      process.exit(1);
-    }
+  const rootDir = path.join(__dirname, '..');
+  const pagesDir = path.join(userProjectDir, 'pages');
 
-    console.log('compiled!');
-  });
+  const compiler = createCompiler(rootDir, pagesDir, errorCallback);
+
+  if (compiler) {
+    compiler.run((err, stats) => {
+
+      if (err) {
+        errorCallback(err.message);
+
+      } else {
+
+        const errors = stats.compilation.errors;
+        if (errors.length > 0) {
+          errors.forEach(error => {
+            errorCallback(error.message);
+          })
+        }
+
+        const assets = stats.compilation.assets;
+        const assetNames = Object.keys(assets);
+
+        assetNames.forEach(assetName => {
+          const asset = assets[assetName];
+          const source = asset.source();
+
+          assetCallback(assetName, source);
+        });
+      }
+    });
+  }
 }
 
 module.exports = bootSsr;
