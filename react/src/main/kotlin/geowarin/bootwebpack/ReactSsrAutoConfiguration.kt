@@ -3,6 +3,8 @@ package geowarin.bootwebpack
 import geowarin.bootwebpack.v8.V8ScriptTemplateViewResolver
 import geowarin.bootwebpack.webpack.AssetStore
 import geowarin.bootwebpack.webpack.WebpackResourceResolver
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.web.ResourceProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
@@ -12,6 +14,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Configuration
 open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
+
+    @Autowired
+    lateinit var resourceProperties: ResourceProperties
 
     @Bean
     open fun viewResolver(): ViewResolver {
@@ -27,8 +32,8 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
 
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
         registry.addResourceHandler("/**")
-                .addResourceLocations("classpath:/static/")
-                .resourceChain(false)
+                .addResourceLocations(*resourceProperties.staticLocations)
+                .resourceChain(resourceProperties.chain.isCache)
                 .addResolver(WebpackResourceResolver(assetStore()))
     }
 }
