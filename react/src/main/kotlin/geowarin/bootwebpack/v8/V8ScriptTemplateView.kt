@@ -19,15 +19,12 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         this.assetStore = assetStore
     }
 
-    override fun setContentType(contentType: String) {
-        super.setContentType(contentType)
-    }
-
     override fun prepareResponse(request: HttpServletRequest, response: HttpServletResponse) {
         super.prepareResponse(request, response)
 
         setResponseContentType(request, response)
         response.characterEncoding = CHARSET.name()
+        response.contentType = MediaType.TEXT_HTML_VALUE
     }
 
     private val html: String = """

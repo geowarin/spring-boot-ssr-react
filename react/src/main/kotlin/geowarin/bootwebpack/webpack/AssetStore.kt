@@ -1,5 +1,6 @@
 package geowarin.bootwebpack.webpack
 
+import com.eclipsesource.v8.V8Object
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
@@ -46,4 +47,6 @@ class WebpackResource(byteArray: ByteArray?, val fileName: String) : ByteArrayRe
     }
 }
 
-data class Asset(val name: String, val source: String)
+data class Asset(val name: String, val source: String) {
+    constructor(obj: V8Object) : this(name = obj.getString("name"), source = obj.getString("source"))
+}

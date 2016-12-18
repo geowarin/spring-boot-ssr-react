@@ -56,11 +56,9 @@ const config = (entries, rootDir) => ({
   }
 });
 
-
-function getPagesEntry(pagesDir) {
-  const pages = glob.sync(pagesDir + '/**/*.js');
+function getPagesEntry(pages) {
   const entries = pages.reduce((entries, pagePath) => {
-    let pageName = path.basename(path.relative(pagesDir, pagePath), '.js');
+    let pageName = path.basename(pagePath, '.js');
     return Object.assign(entries, {
       [pageName]: pagePath
     })
@@ -68,55 +66,13 @@ function getPagesEntry(pagesDir) {
   return entries;
 }
 
-function createCompiler(rootDir, pagesDir, errorCallback) {
+function createCompiler(rootDir, pagesDir) {
   const entries = getPagesEntry(pagesDir);
   entries['client'] = path.join(rootDir, "src/client/client.js");
   entries['renderer'] = path.join(rootDir, "src/server/renderer.js");
-  let compiler = null;
-  try {
-    compiler = webpack(config(entries, rootDir));
-  } catch (e) {
-    errorCallback(e.message);
-    return null;
-  }
+  let compiler = webpack(config(entries, rootDir));
   compiler.outputFileSystem = new MemoryFileSystem();
   return compiler;
 }
 
-function bootSsr(userProjectDir, errorCallback, assetCallback) {
-
-  const rootDir = path.join(__dirname, '..');
-  const pagesDir = path.join(userProjectDir, 'pages');
-
-  const compiler = createCompiler(rootDir, pagesDir, errorCallback);
-
-  if (compiler) {
-    compiler.run((err, stats) => {
-
-      if (err) {
-        errorCallback(err.message);
-
-      } else {
-
-        const errors = stats.compilation.errors;
-        if (errors.length > 0) {
-          errors.forEach(error => {
-            errorCallback(error.message);
-          })
-        }
-
-        const assets = stats.compilation.assets;
-        const assetNames = Object.keys(assets);
-
-        assetNames.forEach(assetName => {
-          const asset = assets[assetName];
-          const source = asset.source();
-
-          assetCallback(assetName, source);
-        });
-      }
-    });
-  }
-}
-
-module.exports = bootSsr;
+module.exports = createCompiler;

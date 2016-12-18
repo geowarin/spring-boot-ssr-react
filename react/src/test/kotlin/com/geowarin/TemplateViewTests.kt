@@ -1,23 +1,16 @@
 package com.geowarin
 
+import com.geowarin.utils.createTestCompiler
 import geowarin.bootwebpack.v8.V8ScriptTemplateView
 import geowarin.bootwebpack.webpack.AssetStore
-import geowarin.bootwebpack.webpack.CompilationError
-import geowarin.bootwebpack.webpack.CompilationSuccess
-import geowarin.bootwebpack.webpack.WebpackCompiler
 import org.amshove.kluent.shouldEqual
 import org.jsoup.Jsoup
 import org.junit.Test
+import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
-import java.io.File
 
-//@RunWith(SpringRunner::class)
-//@SpringBootTest(classes = arrayOf(Toto::class))
 class TemplateViewTests {
-
-//    @Autowired
-//    lateinit var v8view: V8ScriptTemplateView
 
     @Test
     fun should_render() {
@@ -37,23 +30,19 @@ class TemplateViewTests {
         val document = Jsoup.parse(response.contentAsString)
         val renderedHtmlText = document.body().select("#app").text()
         renderedHtmlText shouldEqual "Hello, world!"
+        response.contentType shouldEqual MediaType.TEXT_HTML_VALUE
     }
 }
 
 fun compile(): AssetStore {
-    val compiler = WebpackCompiler(
-            userProject = File("/Users/geowarin/dev/projects/boot-wp/demo/src/main/js"),
-            bootSsrDirectory = File("/Users/geowarin/dev/projects/boot-wp/react/boot-ssr/")
-    )
+
+    val compiler = createTestCompiler("home.js")
 
     val compilation = compiler.compile()
-    when (compilation) {
-        is CompilationSuccess -> {
-            val assetStore = AssetStore()
-            assetStore.store(compilation.assets)
-            return assetStore
-        }
-        is CompilationError -> throw AssertionError("Could not compile: ${compilation.errorMessages}")
-        else -> throw AssertionError("Could not compile")
+    if (compilation.hasErrors()) {
+        throw AssertionError("Could not compile: ${compilation.errors}")
     }
+    val assetStore = AssetStore()
+    assetStore.store(compilation.assets)
+    return assetStore
 }
