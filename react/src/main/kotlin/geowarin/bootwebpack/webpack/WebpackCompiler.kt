@@ -1,90 +1,70 @@
 package geowarin.bootwebpack.webpack
 
-import com.eclipsesource.v8.NodeJS
-import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.V8Array
 import com.eclipsesource.v8.V8Object
+import rx.Emitter
 import rx.Emitter.BackpressureMode
 import rx.Observable
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.concurrent.thread
 
 typealias CompilationListener = (CompilationResult) -> Unit
 
 class WebpackCompiler(var bootSsrDirectory: File, val pages: List<File>) {
     val listeners: Queue<CompilationListener> = ConcurrentLinkedQueue<CompilationListener>()
-    var watching: Boolean = false
+    lateinit var nodeProcess: NodeProcess
 
     fun compile(): CompilationResult {
-        return watchAsync().toBlocking().first()
+        val watchScript = File(bootSsrDirectory, "bin/compileEntry.js")
+        nodeProcess = createNodeProcess(watchScript)
+        nodeProcess.startAsync()
+
+        val observable = createObservable(BackpressureMode.DROP)
+        return observable.toBlocking().first()
     }
 
-    fun addCompilationListener(compilationListener: CompilationListener) {
-        listeners.add(compilationListener)
+    fun watchAsync(): Observable<CompilationResult> {
+        val watchScript = File(bootSsrDirectory, "bin/watchEntry.js")
+        nodeProcess = createNodeProcess(watchScript)
+        nodeProcess.startAsync()
+
+        return createObservable(BackpressureMode.BUFFER)
     }
 
-    private fun createNode(scriptPath: String): NodeJS {
-        val nodeJS = NodeJS.createNodeJS()
+    private fun createObservable(backpressureMode: Emitter.BackpressureMode): Observable<CompilationResult> {
+        return Observable.fromEmitter<CompilationResult>({ emitter ->
+            val listener: CompilationListener = { comp -> emitter.onNext(comp) }
+            emitter.setCancellation { -> listeners.remove(listener) }
+            listeners.add(listener)
+        }, backpressureMode)
+    }
 
-        val runtime = nodeJS.runtime
-        val pageArray = createPages(runtime)
-        runtime.add("pages", pageArray)
-        pageArray.release()
+    fun stop() {
+        nodeProcess.stop()
+    }
 
-        runtime.registerJavaMethod({ _: V8Object, args: V8Array ->
-            val errorObjs = args[0] as V8Object
+    private fun createNodeProcess(nodeScript: File): NodeProcess {
+        val nodeProcess = NodeProcess(nodeScript)
+        nodeProcess.addStringArray("pages", pages.map { it.absolutePath })
 
-            val error = Error.create(errorObjs)
+        nodeProcess.registerJavaMethod("errorCallback") { args ->
+            val error = Error.create(exception = args[0] as V8Object)
             throw Exception(error.message)
+        }
 
-        }, "errorCallback")
-
-        runtime.registerJavaMethod({ _: V8Object, args: V8Array ->
-            val errors = args[0] as V8Array
-            val warnings = args[1] as V8Array
-            val assets = args[2] as V8Array
-
-            val compilation = CompilationResult.create(errors, warnings, assets)
+        nodeProcess.registerJavaMethod("compilationCallback") { args ->
+            val compilation = CompilationResult.create(
+                    errorsArray = args[0] as V8Array,
+                    warningsArray = args[1] as V8Array,
+                    assetsArray = args[2] as V8Array
+            )
 
             for (listener in listeners) {
                 listener.invoke(compilation)
             }
-
-        }, "compilationCallback")
-
-        val nodeScript = File(bootSsrDirectory, scriptPath)
-        nodeJS.exec(nodeScript)
-        return nodeJS
-    }
-
-    fun watchAsync(): Observable<CompilationResult> {
-        watching = true
-        thread {
-            val nodeJS = createNode("bin/watchEntry.js")
-            while (nodeJS.isRunning && watching) {
-                nodeJS.handleMessage()
-            }
-            nodeJS.release()
         }
-        return Observable.fromEmitter<CompilationResult>({ emitter ->
-            val listener: CompilationListener = { comp -> emitter.onNext(comp) }
-            emitter.setCancellation { -> listeners.remove(listener) }
-            addCompilationListener(listener)
-        }, BackpressureMode.BUFFER)
-    }
-
-    private fun createPages(v8: V8): V8Array {
-        val array = V8Array(v8)
-        for (page in pages) {
-            array.push(page.absolutePath)
-        }
-        return array
-    }
-
-    fun stopWatching() {
-        watching = false
+        return nodeProcess
     }
 }
 
