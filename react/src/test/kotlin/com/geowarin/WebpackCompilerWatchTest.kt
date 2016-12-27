@@ -15,14 +15,14 @@ class WebpackCompilerWatchTest {
     fun watchAsync() {
 
         val tmpPage = createInTempDir(contentPath = "watch/page1.js")
-        val watchObservable = createTestCompiler(tmpPage).watchAsync().toBlocking()
+        val watchObservable = createTestCompiler(tmpPage).watchAsync()
 
-        val firstCompilation = watchObservable.first()
+        val firstCompilation = watchObservable.blockingFirst()
         firstCompilation shouldContainAssets listOf("client.js", "renderer.js", "page1.js", "common.js")
 
         tmpPage.changeContents(newContentPath = "watch/page2.js")
 
-        val secondCompilation = watchObservable.first()
+        val secondCompilation = watchObservable.blockingFirst()
 
         secondCompilation shouldContainAssets listOf("client.js", "renderer.js", "page1.js", "common.js")
         secondCompilation.assets.find { it.name == "page1.js" }!!.source shouldContain "Page 2"

@@ -2,9 +2,9 @@ package geowarin.bootwebpack.webpack
 
 import com.eclipsesource.v8.V8Array
 import com.eclipsesource.v8.V8Object
-import rx.Emitter
-import rx.Emitter.BackpressureMode
-import rx.Observable
+import io.reactivex.BackpressureStrategy
+import io.reactivex.Flowable
+import io.reactivex.FlowableEmitter
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -20,24 +20,24 @@ class WebpackCompiler(var bootSsrDirectory: File, val pages: List<File>) {
         nodeProcess = createNodeProcess(watchScript)
         nodeProcess.startAsync()
 
-        val observable = createObservable(BackpressureMode.DROP)
-        return observable.toBlocking().first()
+        val observable = createObservable(BackpressureStrategy.DROP)
+        return observable.blockingFirst()
     }
 
-    fun watchAsync(): Observable<CompilationResult> {
+    fun watchAsync(): Flowable<CompilationResult> {
         val watchScript = File(bootSsrDirectory, "bin/watchEntry.js")
         nodeProcess = createNodeProcess(watchScript)
         nodeProcess.startAsync()
 
-        return createObservable(BackpressureMode.BUFFER)
+        return createObservable(BackpressureStrategy.BUFFER)
     }
 
-    private fun createObservable(backpressureMode: Emitter.BackpressureMode): Observable<CompilationResult> {
-        return Observable.fromEmitter<CompilationResult>({ emitter ->
+    private fun createObservable(backpressureStrategy: BackpressureStrategy): Flowable<CompilationResult> {
+        return Flowable.create({ emitter: FlowableEmitter<CompilationResult> ->
             val listener: CompilationListener = { comp -> emitter.onNext(comp) }
-            emitter.setCancellation { -> listeners.remove(listener) }
+            emitter.setCancellable { -> listeners.remove(listener) }
             listeners.add(listener)
-        }, backpressureMode)
+        }, backpressureStrategy)
     }
 
     fun stop() {
