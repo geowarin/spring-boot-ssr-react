@@ -17,7 +17,7 @@ class WebpackCompiler(var bootSsrDirectory: File, val pages: List<File>) {
 
     fun compile(): CompilationResult {
         val watchScript = File(bootSsrDirectory, "bin/compileEntry.js")
-        nodeProcess = createNodeProcess(watchScript)
+        val nodeProcess = createNodeProcess(watchScript)
         nodeProcess.startAsync()
 
         val observable = createObservable(BackpressureStrategy.DROP)
