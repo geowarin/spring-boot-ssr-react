@@ -2,7 +2,6 @@ package geowarin.bootwebpack.webpack
 
 import com.eclipsesource.v8.V8Object
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
 

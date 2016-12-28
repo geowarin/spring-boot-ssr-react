@@ -9,10 +9,10 @@ import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
-typealias CompilationListener = (CompilationResult) -> Unit
+//typealias CompilationListener = (CompilationResult) -> Unit
 
-class WebpackCompiler(var bootSsrDirectory: File, val pages: List<File>) {
-    val listeners: Queue<CompilationListener> = ConcurrentLinkedQueue<CompilationListener>()
+class WebpackCompiler(var bootSsrDirectory: File, val pages: Iterable<File>) {
+    val listeners: Queue<(CompilationResult) -> Unit> = ConcurrentLinkedQueue<(CompilationResult) -> Unit>()
     lateinit var nodeProcess: NodeProcess
 
     fun compile(): CompilationResult {
@@ -34,7 +34,7 @@ class WebpackCompiler(var bootSsrDirectory: File, val pages: List<File>) {
 
     private fun createObservable(backpressureStrategy: BackpressureStrategy): Flowable<CompilationResult> {
         return Flowable.create({ emitter: FlowableEmitter<CompilationResult> ->
-            val listener: CompilationListener = { comp -> emitter.onNext(comp) }
+            val listener: (CompilationResult) -> Unit = { comp -> emitter.onNext(comp) }
             emitter.setCancellable { -> listeners.remove(listener) }
             listeners.add(listener)
         }, backpressureStrategy)

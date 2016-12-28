@@ -9,7 +9,7 @@ import kotlin.concurrent.thread
 
 class NodeProcess(val scriptFile: File) : Closeable {
     var shouldRun = false
-    var objects: MutableList<Pair<String, List<String>>> = mutableListOf()
+    var objects: MutableList<Pair<String, Iterable<String>>> = mutableListOf()
     var methods: MutableList<Pair<String, (V8Array) -> Unit>> = mutableListOf()
 
     fun startAsync() {
@@ -31,7 +31,7 @@ class NodeProcess(val scriptFile: File) : Closeable {
         }
 
         methods.forEach { entry ->
-            nodeJS.runtime.registerJavaMethod({ _: V8Object, args: V8Array ->
+            nodeJS.runtime.registerJavaMethod({ obj: V8Object, args: V8Array ->
                 entry.second(args)
             }, entry.first)
         }
@@ -52,7 +52,7 @@ class NodeProcess(val scriptFile: File) : Closeable {
         methods.add(Pair(name, method))
     }
 
-    fun addStringArray(name: String, source: List<String>) {
+    fun addStringArray(name: String, source: Iterable<String>) {
         objects.add(Pair(name, source))
     }
 

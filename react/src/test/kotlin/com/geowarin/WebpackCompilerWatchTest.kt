@@ -27,6 +27,16 @@ class WebpackCompilerWatchTest {
         secondCompilation shouldContainAssets listOf("client.js", "renderer.js", "page1.js", "common.js")
         secondCompilation.assets.find { it.name == "page1.js" }!!.source shouldContain "Page 2"
     }
+
+    @Test
+    fun testSegfault() {
+
+        val tmpPage = createInTempDir(contentPath = "watch/page1.js")
+        val watchObservable = createTestCompiler(tmpPage).watchAsync()
+
+        watchObservable.blockingSubscribe()
+
+    }
 }
 
 fun File.changeContents(newContentPath: String) {

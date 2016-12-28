@@ -50,7 +50,7 @@ class StdoutConsole : Console {
     }
 
     override fun timeEnd(label: String) {
-        val watch = times.getOrDefault(label, startTime)
+        val watch = times[label] ?: startTime
         println(String.format("%s: %dms", label, System.currentTimeMillis() - watch))
     }
 
