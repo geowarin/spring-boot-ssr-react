@@ -5,6 +5,7 @@ const path = require('path');
 const glob = require('glob');
 const webpack = require('webpack');
 const MemoryFileSystem = require('memory-fs');
+const SaneWatcherPlugin = require('./watcher/SaneWatcherPlugin');
 
 const config = (entries, rootDir) => ({
   // devtool: 'cheap-module-source-map',
@@ -47,7 +48,8 @@ const config = (entries, rootDir) => ({
   plugins: [
     new webpack.optimize.CommonsChunkPlugin({
       name: 'common'
-    })
+    }),
+    new SaneWatcherPlugin({projectPath: '/Users/geowarin/dev/projects/boot-wp/demo/src/main/js'})
   ],
   resolveLoader: {
     modules: [

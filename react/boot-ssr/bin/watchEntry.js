@@ -4,6 +4,7 @@ const watch = require('../src/watch');
 try {
   watch(pages, errorCallback, compilationCallback);
 } catch (e) {
-  errorCallback(e.message);
+  console.error(e.stack)
+  errorCallback(e);
 }
 
