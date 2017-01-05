@@ -48,8 +48,8 @@ class WebpackCompiler(var bootSsrDirectory: File, val pages: Iterable<File>) {
         val nodeProcess = NodeProcess(nodeScript)
 
         val options = mapOf<String, Any>(
-                "pages" to pages.map { it.absolutePath },
-                "watchDirectories" to watchDirectories.map { it.absolutePath }
+                "pages" to pages.map { it.canonicalPath },
+                "watchDirectories" to watchDirectories.map { it.canonicalPath }
         )
         nodeProcess.addObj("options", options)
 

@@ -111,14 +111,12 @@ class SaneWatcher extends EventEmitter {
    */
   _startWatch(files, since, done) {
     const options = {glob: ['**/*.js', '**/*.css']};
-    console.log("start watch");
     this.watcher = new MultiWatcher(this.options.watchDirectories, options);
 
     this.watcher.on('ready', function () {
       done();
     });
     this.watcher.on('change', (filepath, root, stat) => {
-      console.log("CHANGE", filepath, +stat.mtime);
       const filePath = path.join(root, filepath);
       this._onFile(filePath, stat);
     });
