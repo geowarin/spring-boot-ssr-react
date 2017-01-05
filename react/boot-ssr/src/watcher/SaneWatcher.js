@@ -1,47 +1,44 @@
 "use strict";
 
-var async = require('async');
-var createDebug = require('debug');
-var EventEmitter = require('events');
-var Int64 = require('node-int64');
-var fs = require('fs');
-var path = require('path');
-var fsAccurency = require('./utils/fsAccurency');
+const async = require('async');
+const createDebug = require('debug');
+const EventEmitter = require('events');
+const fs = require('fs');
+const path = require('path');
+const sane = require('sane');
+const fsAccurency = require('./utils/fsAccurency');
 
 const debug = createDebug('watchman:connector');
 
-/*
- type Options = { aggregateTimeout: number, projectPath: string};
-
- type WatchmanResponse = {
- clock: string,
- subscription: string,
- files: Array<{ name: string, mtime_ms: number, 'new': boolean, exists: boolean }>
- };
+/**
+ * A sane watcher that watches multiple direcotries
  */
+class MultiWatcher extends EventEmitter {
+  constructor(directories, options) {
+    super();
+    this.watchers = directories.map(d => {
+      const watcher = sane(d, options);
+      watcher.on('ready', () => this.emit('ready'));
+      watcher.on('change', (filepath, root, stat) => this.emit('change', filepath, root, stat));
+      watcher.on('add', (filepath, root, stat) => this.emit('add', filepath, root, stat));
+      watcher.on('delete', (filepath, root) => this.emit('delete', filepath, root));
+      return watcher;
+    });
+  }
+
+  close() {
+    this.watchers.forEach(w => w.close());
+  }
+}
 
 class SaneWatcher extends EventEmitter {
 
-   /*
-   // @type {Array<string>}
-  aggregatedChanges = [];
-  connected = false;
-  // string
-  lastClock;
-
-  fileTimes = {};
-  options;
-  paused = true;
-  timeoutRef = 0;
-  initialScan = true;
-  initialScanRemoved = false;
-   // @type {Set} Set<{ name: string, mtime: number }>
-  initialScanQueue = new Set();
-*/
   //: Options = { aggregateTimeout: 200, projectPath: '' }
   constructor(options) {
     super();
-    if (!options.projectPath) throw new Error('projectPath is missing for WatchmanPlugin');
+    if (!Array.isArray(options.watchDirectories)) {
+      throw new Error('"watchDirectories" option is missing for the WatcherPlugin');
+    }
 
     this.options = options;
 
@@ -50,9 +47,6 @@ class SaneWatcher extends EventEmitter {
     this.fileTimes = {};
     this.paused = true;
     this.timeoutRef = 0;
-    this.initialScan = true;
-    this.initialScanRemoved = false;
-    this.initialScanQueue = new Set();
   }
 
   /**
@@ -72,18 +66,15 @@ class SaneWatcher extends EventEmitter {
 
     const allFiles = files.concat(dirs);
 
-    Promise.all([
-      new Promise((resolve, reject) => {
-        this._startWatch(allFiles, since, err => (err ? reject(err) : resolve()));
-      }),
-      new Promise((resolve) => {
-        this._doInitialScan(allFiles, resolve);
-      }),
-    ])
-      .catch((err) => {
-        throw err;
-      })
-      .then(() => (done ? done() : null));
+    this._doInitialScan(allFiles, () => {
+      this._startWatch(allFiles, since, (err) => {
+        if (err) {
+          throw err;
+        }
+
+        done ? done() : null;
+      });
+    });
   }
 
   /**
@@ -119,113 +110,38 @@ class SaneWatcher extends EventEmitter {
    * @private
    */
   _startWatch(files, since, done) {
-
-    this.watcher = sane(this.options.projectPath, {glob: ['**/*.js', '**/*.css']});
+    const options = {glob: ['**/*.js', '**/*.css']};
+    console.log("start watch");
+    this.watcher = new MultiWatcher(this.options.watchDirectories, options);
 
     this.watcher.on('ready', function () {
-      console.log('ready');
       done();
     });
-    this.watcher.on('change', function (filepath, root, stat) {
-      console.log('file changed', filepath);
+    this.watcher.on('change', (filepath, root, stat) => {
+      console.log("CHANGE", filepath, +stat.mtime);
+      const filePath = path.join(root, filepath);
+      this._onFile(filePath, stat);
     });
-    this.watcher.on('add', function (filepath, root, stat) {
-      console.log('file added', filepath);
+    this.watcher.on('add', (filepath, root, stat) => {
+      const filePath = path.join(root, filepath);
+      this._onFile(filePath, stat);
     });
-    this.watcher.on('delete', function (filepath, root) {
-      console.log('file deleted', filepath);
+    this.watcher.on('delete', (filepath, root) => {
+      const filePath = path.join(root, filepath);
+      this._onFile(filePath, null);
     });
-
-
-    // const client = this._getClientInstance();
-    //
-    // client.capabilityCheck({ optional: [], required: ['cmd-watch-project', 'relative_root'] },
-    //   (capabilityErr) => {
-    //     /* istanbul ignore if: cannot happen in tests */
-    //     if (capabilityErr) {
-    //       done(capabilityErr);
-    //       return;
-    //     }
-    //     debug('watchman capabilityCheck() successful');
-    //
-    //     // Initiate the watch
-    //     client.command(['watch-project', this.options.projectPath],
-    //       (watchError, watchResponse) => {
-    //         /* istanbul ignore if: cannot happen in tests */
-    //         if (watchError) {
-    //           done(watchError);
-    //           return;
-    //         }
-    //         debug('watchman command watch-project successful');
-    //
-    //         /* istanbul ignore if: cannot happen in tests */
-    //         if (watchResponse.warning) {
-    //           console.warn('warning: ', watchResponse.warning); // eslint-disable-line no-console
-    //         }
-    //
-    //         const sub = {
-    //           expression: [
-    //             'allof',
-    //             [
-    //               'name',
-    //               files.map(file => path.relative(this.options.projectPath, file)),
-    //               'wholename',
-    //             ],
-    //           ],
-    //           fields: ['name', 'mtime_ms', 'exists'],
-    //           since: typeof since === 'string' ? since : new Int64(Math.floor(since / 1000)),
-    //           relative_root: watchResponse.relative_path,
-    //         };
-    //
-    //         client.on('subscription', this._onSubscription);
-    //
-    //         debug('watchman command subscription data: ', sub);
-    //
-    //         client.command(['subscribe', watchResponse.watch, 'webpack_subscription', sub],
-    //           (subscribeError) => {
-    //             /* istanbul ignore if: cannot happen in testsn */
-    //             if (subscribeError) {
-    //               done(subscribeError);
-    //               return;
-    //             }
-    //             debug('watchman command subscribe successful');
-    //             done();
-    //           });
-    //       },
-    //     );
-    //   },
-    // );
   }
 
-  /**
-   * @param resp: WatchmanResponse
-   * @private
-   */
-  _onSubscription(resp) {
-    debug('received subscription: %O', resp);
-    if (resp.subscription === 'webpack_subscription') {
-      this.lastClock = resp.clock;
-      resp.files.forEach((file) => {
-        const filePath = path.join(this.options.projectPath, file.name);
-        const mtime = (!file.exists) ? null : +file.mtime_ms;
+  _onFile(filePath, stat) {
+    debug('received subscription: %O', stat);
 
-        this._setFileTime(filePath, mtime);
+    const mtime = stat ? +stat.mtime : null;
+    this._setFileTime(filePath, mtime);
 
-        if (this.initialScan) {
-          if (mtime) {
-            this.initialScanQueue.add({name: filePath, mtime});
-          } else {
-            this.initialScanRemoved = true;
-          }
-          return;
-        }
+    if (this.paused || !mtime) return;
 
-        if (this.paused || !file.exists) return;
-
-        this._handleEvents(filePath, mtime);
-      });
-    }
-  };
+    this._handleEvents(filePath, mtime);
+  }
 
   /**
    * @param file: string
@@ -258,28 +174,7 @@ class SaneWatcher extends EventEmitter {
       this.aggregatedChanges.push(file);
     }
 
-    this.timeoutRef = setTimeout(this._onTimeout, this.options.aggregateTimeout);
-  }
-
-  /**
-   *
-   * @return {Client}
-   * @private
-   */
-  _getClientInstance() {
-    if (!this.client) {
-      const client = new Client();
-      client.on('connect', () => {
-        this.connected = true;
-      });
-      client.on('end', () => {
-        this.connected = false;
-      });
-
-      this.client = client;
-    }
-
-    return this.client;
+    this.timeoutRef = setTimeout(() => this._onTimeout(), this.options.aggregateTimeout);
   }
 
   _onTimeout() {
@@ -287,7 +182,7 @@ class SaneWatcher extends EventEmitter {
     const changes = this.aggregatedChanges;
     this.aggregatedChanges = [];
 
-    this.emit('aggregated', changes, this.lastClock);
+    this.emit('aggregated', changes);
   };
 
   /**
@@ -311,20 +206,6 @@ class SaneWatcher extends EventEmitter {
         callback();
       });
     }, () => {
-      this.initialScan = false;
-      debug('initial file scan finished');
-
-      if (this.initialScanQueue.size > 0) {
-        const file = Array.from(this.initialScanQueue)[this.initialScanQueue.size - 1];
-        this._handleEvents(file.name, file.mtime);
-      }
-
-      if (this.initialScanRemoved) {
-        this.initialScanRemoved = false;
-        this.emit('remove');
-      }
-
-      this.initialScanQueue.clear();
       done();
     });
   }

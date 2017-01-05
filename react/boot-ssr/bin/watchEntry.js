@@ -2,7 +2,7 @@
 
 const watch = require('../src/watch');
 try {
-  watch(pages, errorCallback, compilationCallback);
+  watch(options, errorCallback, compilationCallback);
 } catch (e) {
   console.error(e.stack)
   errorCallback(e);

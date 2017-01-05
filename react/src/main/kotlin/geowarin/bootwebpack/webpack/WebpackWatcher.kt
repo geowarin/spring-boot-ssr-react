@@ -27,6 +27,9 @@ open class WebpackWatcher(val assetStore: AssetStore) : ApplicationListener<Cont
                 pages = pages,
                 bootSsrDirectory = File("/Users/geowarin/dev/projects/boot-wp/react/boot-ssr")
         )
-        compiler.watchAsync().forEach { res -> assetStore.store(res.assets) }
+        val watchDirectories = arrayOf(
+                File("/Users/geowarin/dev/projects/boot-wp/demo/src/main/js/")
+        )
+        compiler.watchAsync(*watchDirectories).forEach { res -> assetStore.store(res.assets) }
     }
 }

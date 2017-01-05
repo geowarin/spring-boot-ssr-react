@@ -7,6 +7,7 @@ import org.amshove.kluent.shouldEqualTo
 import org.amshove.kluent.shouldStartWith
 import org.springframework.core.io.ClassPathResource
 import java.io.File
+import java.nio.file.Files
 
 fun createTestCompiler(vararg pagePaths: String): WebpackCompiler {
     val pages = pagePaths.map { ClassPathResource(it).file }
@@ -39,4 +40,11 @@ infix fun CompilationResult.shouldHaveError(errorMessage: String) {
     }
     this.errors.map { it.message }.size shouldEqualTo 1
     this.errors[0].message shouldStartWith errorMessage
+}
+
+fun String.asFile(): File {
+    val tempFile = createTempFile()
+    Files.newBufferedWriter(tempFile.toPath()).use { writer -> writer.write(this) }
+    tempFile.deleteOnExit()
+    return tempFile
 }

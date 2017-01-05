@@ -4,11 +4,11 @@ const path = require('path');
 const createCompiler = require('./createCompiler');
 const getAssets = require('./getAssets');
 
-function compile(pages, errorCallback, compilationCallback) {
+function compile(options, errorCallback, compilationCallback) {
 
   const rootDir = path.join(__dirname, '..');
 
-  const compiler = createCompiler(rootDir, pages);
+  const compiler = createCompiler(rootDir, options);
 
   compiler.run((err, stats) => {
 

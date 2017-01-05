@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //typealias CompilationListener = (CompilationResult) -> Unit
 
 class WebpackCompiler(var bootSsrDirectory: File, val pages: Iterable<File>) {
-    val listeners: Queue<(CompilationResult) -> Unit> = ConcurrentLinkedQueue<(CompilationResult) -> Unit>()
+    val listeners: Queue<(CompilationResult) -> Unit> = ConcurrentLinkedQueue()
     lateinit var nodeProcess: NodeProcess
 
     fun compile(): CompilationResult {
@@ -24,9 +24,9 @@ class WebpackCompiler(var bootSsrDirectory: File, val pages: Iterable<File>) {
         return observable.blockingFirst()
     }
 
-    fun watchAsync(): Flowable<CompilationResult> {
+    fun watchAsync(vararg watchDirectories:File): Flowable<CompilationResult> {
         val watchScript = File(bootSsrDirectory, "bin/watchEntry.js")
-        nodeProcess = createNodeProcess(watchScript)
+        nodeProcess = createNodeProcess(watchScript, watchDirectories.toList())
         nodeProcess.startAsync()
 
         return createObservable(BackpressureStrategy.BUFFER)
@@ -44,9 +44,14 @@ class WebpackCompiler(var bootSsrDirectory: File, val pages: Iterable<File>) {
         nodeProcess.stop()
     }
 
-    private fun createNodeProcess(nodeScript: File): NodeProcess {
+    private fun createNodeProcess(nodeScript: File, watchDirectories:List<File> = listOf()): NodeProcess {
         val nodeProcess = NodeProcess(nodeScript)
-        nodeProcess.addStringArray("pages", pages.map { it.absolutePath })
+
+        val options = mapOf<String, Any>(
+                "pages" to pages.map { it.absolutePath },
+                "watchDirectories" to watchDirectories.map { it.absolutePath }
+        )
+        nodeProcess.addObj("options", options)
 
         nodeProcess.registerJavaMethod("errorCallback") { args ->
             val error = Error.create(exception = args[0] as V8Object)

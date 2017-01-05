@@ -7,7 +7,7 @@ const webpack = require('webpack');
 const MemoryFileSystem = require('memory-fs');
 const SaneWatcherPlugin = require('./watcher/SaneWatcherPlugin');
 
-const config = (entries, rootDir) => ({
+const config = (entries, rootDir, watchDirectories) => ({
   // devtool: 'cheap-module-source-map',
   entry: entries,
   output: {
@@ -49,7 +49,7 @@ const config = (entries, rootDir) => ({
     new webpack.optimize.CommonsChunkPlugin({
       name: 'common'
     }),
-    new SaneWatcherPlugin({projectPath: '/Users/geowarin/dev/projects/boot-wp/demo/src/main/js'})
+    new SaneWatcherPlugin({watchDirectories: watchDirectories})
   ],
   resolveLoader: {
     modules: [
@@ -68,11 +68,11 @@ function getPagesEntry(pages) {
   return entries;
 }
 
-function createCompiler(rootDir, pagesDir) {
-  const entries = getPagesEntry(pagesDir);
+function createCompiler(rootDir, options) {
+  const entries = getPagesEntry(options.pages);
   entries['client'] = path.join(rootDir, "src/client/client.js");
   entries['renderer'] = path.join(rootDir, "src/server/renderer.js");
-  let compiler = webpack(config(entries, rootDir));
+  let compiler = webpack(config(entries, rootDir, options.watchDirectories));
   compiler.outputFileSystem = new MemoryFileSystem();
   return compiler;
 }

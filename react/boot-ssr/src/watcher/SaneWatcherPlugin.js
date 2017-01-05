@@ -1,12 +1,9 @@
 "use strict";
 
-var createDebug = require('debug')
-var WatchFileSystem = require('./SaneWatchFileSystem')
+const createDebug = require('debug');
+const WatchFileSystem = require('./SaneWatchFileSystem');
 
 const debug = createDebug('watchman:plugin');
-/*
-type Options = { projectPath: string };
-*/
 
 class SaneWatcherPlugin {
 
@@ -15,7 +12,6 @@ class SaneWatcherPlugin {
    */
   constructor(options) {
     this.options = options || {};
-    if (!this.options.projectPath) throw new Error('projectPath is missing for WatchmanPlugin');
   }
 
   apply(compiler) {

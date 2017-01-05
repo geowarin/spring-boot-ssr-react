@@ -2,7 +2,7 @@
 
 const compile = require('../src/compile');
 try {
-  compile(pages, errorCallback, compilationCallback);
+  compile(options, errorCallback, compilationCallback);
 } catch (e) {
   errorCallback(e);
 }

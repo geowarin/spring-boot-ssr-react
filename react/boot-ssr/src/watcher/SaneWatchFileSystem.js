@@ -1,36 +1,10 @@
 "use strict";
 
-var createDebug = require('debug');
-var Watcher = require('./SaneWatcher');
-
+const createDebug = require('debug');
+const Watcher = require('./SaneWatcher');
 const debug = createDebug('watchman:filesystem');
 
-/*
-type Options = { projectPath: string };
-type Callback = (
-  err: ?Error,
-  files: Array<string>,
-  dirs: Array<string>,
-  missing: Array<string>,
-  filetimes: { [key: string]: number },
-  dirtimes: { [key: string]: number },
-) => void;
-*/
-
-class WatchmanWatchFileSystem {
-
-/*
-  inputFileSystem;
-  /!**
-   * @type {Options}
-   *!/
-  options;
-  watcher;
-  /!**
-   * @type {string}
-   *!/
-  lastClock;
-*/
+class SaneWatchFileSystem {
 
   /**
    *
@@ -66,8 +40,7 @@ class WatchmanWatchFileSystem {
       });
     }
 
-    this.watcher.once('aggregated', (changes, clock) => {
-      this.lastClock = clock;
+    this.watcher.once('aggregated', changes => {
       debug('aggregated event received with changes: ', changes);
       if (this.inputFileSystem && this.inputFileSystem.purge) {
         this.inputFileSystem.purge(changes);
@@ -85,7 +58,7 @@ class WatchmanWatchFileSystem {
       );
     });
 
-    this.watcher.watch(files.concat(missing), dirs, this.lastClock || startTime);
+    this.watcher.watch(files.concat(missing), dirs, startTime);
 
     if (oldWatcher) {
       debug('closing old connector');
@@ -99,4 +72,4 @@ class WatchmanWatchFileSystem {
   }
 }
 
-module.exports = WatchmanWatchFileSystem;
+module.exports = SaneWatchFileSystem;

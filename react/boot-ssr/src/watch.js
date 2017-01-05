@@ -4,11 +4,11 @@ const path = require('path');
 const createCompiler = require('./createCompiler');
 const getAssets = require('./getAssets');
 
-function watch(pages, errorCallback, compilationCallback) {
+function watch(options, errorCallback, compilationCallback) {
 
   const rootDir = path.join(__dirname, '..');
 
-  const compiler = createCompiler(rootDir, pages);
+  const compiler = createCompiler(rootDir, options);
   const watchOptions = {
     aggregateTimeout: 300
   };
