@@ -1,8 +1,6 @@
 "use strict";
 
-const createDebug = require('debug');
 const Watcher = require('./SaneWatcher');
-const debug = createDebug('watchman:filesystem');
 
 class SaneWatchFileSystem {
 
@@ -28,20 +26,18 @@ class SaneWatchFileSystem {
    * @return {{close: (function(): *), pause: (function(): *)}}
    */
   watch(files, dirs, missing, startTime, options, callback, callbackUndelayed) {
-    const oldWatcher = this.watcher;
 
-    debug('creating new connector');
-    this.watcher = new Watcher(Object.assign({}, options, this.options));
+    if (!this.watcher) {
+      this.watcher = new Watcher(Object.assign({}, options, this.options));
+    }
 
     if (callbackUndelayed) {
       this.watcher.once('change', (filePath, mtime) => {
-        debug('change event received for %s with mtime', filePath, mtime);
         callbackUndelayed(filePath, mtime);
       });
     }
 
     this.watcher.once('aggregated', changes => {
-      debug('aggregated event received with changes: ', changes);
       if (this.inputFileSystem && this.inputFileSystem.purge) {
         this.inputFileSystem.purge(changes);
       }
@@ -59,11 +55,6 @@ class SaneWatchFileSystem {
     });
 
     this.watcher.watch(files.concat(missing), dirs, startTime);
-
-    if (oldWatcher) {
-      debug('closing old connector');
-      oldWatcher.close();
-    }
 
     return {
       close: () => this.watcher.close(),

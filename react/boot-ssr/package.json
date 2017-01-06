@@ -15,16 +15,12 @@
     "babel-plugin-transform-object-rest-spread": "^6.20.2",
     "babel-preset-latest": "^6.16.0",
     "babel-preset-react": "^6.16.0",
-    "debug": "^2.6.0",
     "domready": "^1.0.8",
-    "glob": "^7.1.1",
     "little-loader": "^0.2.0",
     "memory-fs": "^0.4.1",
-    "node-int64": "^0.4.0",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
     "sane": "^1.5.0",
-    "socket.io": "^1.7.2",
     "webpack": "beta"
   }
 }

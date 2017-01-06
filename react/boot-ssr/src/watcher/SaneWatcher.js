@@ -1,14 +1,11 @@
 "use strict";
 
 const async = require('async');
-const createDebug = require('debug');
 const EventEmitter = require('events');
 const fs = require('fs');
 const path = require('path');
 const sane = require('sane');
 const fsAccurency = require('./utils/fsAccurency');
-
-const debug = createDebug('watchman:connector');
 
 /**
  * A sane watcher that watches multiple direcotries
@@ -41,9 +38,7 @@ class SaneWatcher extends EventEmitter {
     }
 
     this.options = options;
-
     this.aggregatedChanges = [];
-    this.connected = false;
     this.fileTimes = {};
     this.paused = true;
     this.timeoutRef = 0;
@@ -59,10 +54,7 @@ class SaneWatcher extends EventEmitter {
    * which is then treated as a timestamp in milliseconds
    */
   watch(files, dirs, since, done) {
-    debug(`watch() called, current connection status: ${this.connected ? 'connected' : 'disconnected'}`);
     this.paused = false;
-
-    if (this.connected) return;
 
     const allFiles = files.concat(dirs);
 
@@ -86,10 +78,10 @@ class SaneWatcher extends EventEmitter {
   }
 
   close() {
-    debug('close() called');
     this.paused = true;
-    if (this.timeoutRef) clearTimeout(this.timeoutRef);
-    this.removeAllListeners();
+    if (this.timeoutRef) {
+      clearTimeout(this.timeoutRef);
+    }
 
     if (this.watcher) {
       this.watcher.close();
@@ -98,9 +90,10 @@ class SaneWatcher extends EventEmitter {
   }
 
   pause() {
-    debug('pause() called');
     this.paused = true;
-    if (this.timeoutRef) clearTimeout(this.timeoutRef);
+    if (this.timeoutRef) {
+      clearTimeout(this.timeoutRef);
+    }
   }
 
   /**
@@ -131,12 +124,12 @@ class SaneWatcher extends EventEmitter {
   }
 
   _onFile(filePath, stat) {
-    debug('received subscription: %O', stat);
-
     const mtime = stat ? +stat.mtime : null;
     this._setFileTime(filePath, mtime);
 
-    if (this.paused || !mtime) return;
+    if (this.paused || !mtime) {
+      return;
+    }
 
     this._handleEvents(filePath, mtime);
   }
@@ -166,7 +159,9 @@ class SaneWatcher extends EventEmitter {
    * @private
    */
   _handleAggregated(file) {
-    if (this.timeoutRef) clearTimeout(this.timeoutRef);
+    if (this.timeoutRef) {
+      clearTimeout(this.timeoutRef);
+    }
 
     if (this.aggregatedChanges.indexOf(file) < 0) {
       this.aggregatedChanges.push(file);
@@ -189,7 +184,6 @@ class SaneWatcher extends EventEmitter {
    * @private
    */
   _doInitialScan(files, done) {
-    debug('starting initial file scan');
     async.eachLimit(files, 500, (file, callback) => {
       fs.stat(file, (err, stat) => {
         if (err) {
