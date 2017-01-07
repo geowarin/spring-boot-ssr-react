@@ -62,7 +62,8 @@ class WebpackCompiler(var bootSsrDirectory: File, val pages: Iterable<File>) {
             val compilation = CompilationResult.create(
                     errorsArray = args[0] as V8Array,
                     warningsArray = args[1] as V8Array,
-                    assetsArray = args[2] as V8Array
+                    assetsArray = args[2] as V8Array,
+                    compileTime = args[3] as Int
             )
 
             for (listener in listeners) {
@@ -85,22 +86,22 @@ data class Warning(val message: String) {
     }
 }
 
-class CompilationResult(val errors: List<Error>, val warnings: List<Warning>, val assets: List<Asset>) {
+class CompilationResult(val errors: List<Error>, val warnings: List<Warning>, val assets: List<Asset>, val compileTime: Int) {
     fun hasErrors() = errors.isNotEmpty()
     fun hasWarnings() = warnings.isNotEmpty()
 
     companion object Factory {
-        fun create(errorsArray: V8Array, warningsArray: V8Array, assetsArray: V8Array): CompilationResult {
+        fun create(errorsArray: V8Array, warningsArray: V8Array, assetsArray: V8Array, compileTime: Int): CompilationResult {
 
             val errors = toObjs(errorsArray)
             val warnings = toObjs(warningsArray)
             val assets = toObjs(assetsArray)
 
-
             val compilationResult = CompilationResult(
                     errors.map { Error.create(it) },
                     warnings.map { Warning.create(it) },
-                    assets.map(::Asset)
+                    assets.map(::Asset),
+                    compileTime
             )
 
             errors.forEach { it.release() }

@@ -1,51 +1,59 @@
 package com.geowarin
 
 import com.geowarin.utils.createTestCompiler
-import com.geowarin.utils.shouldContainAssets
+import com.geowarin.utils.source
 import org.amshove.kluent.shouldContain
 import org.junit.Test
 import org.springframework.core.io.ClassPathResource
 import java.io.File
-import java.lang.Thread.sleep
-import java.nio.file.Files
-import java.nio.file.attribute.FileTime
 
 class WebpackCompilerWatchTest {
 
-    @Test(timeout = 10000)
+    /**
+     * This test is flaky because webpack sometimes doesn't pick changes if they occur too fast.
+     * This is why I had introduced a sleep between two writes.
+     *
+     * It has nothing to do with the watcher nor the CachedInputFileSystem that webpack uses.
+     * Reducing the aggregateTimeout of the watcher has no effect either because it
+     * does picks up all the changes and invalidates the cache anyway.
+     *
+     * Painful sessions of debugging point to the NormalModule not rebuilding (NormalModule.build())
+     * and the changes ending up not being processed by babel.
+     */
+    @Test(timeout = 120000)
     fun watchAsync() {
-
-        val rootDir = createTempDir()
-        val tmpPage = createInTempDir(contentPath = "watch/page1.js", rootDir = rootDir)
+        val rootDir = tmpDir()
+        val tmpPage = createFileInTmpDir(contentPath = "watch/page1.js", rootDir = rootDir)
 
         val watchObservable = createTestCompiler(tmpPage).watchAsync(rootDir)
 
-        val firstCompilation = watchObservable.blockingFirst()
-        firstCompilation shouldContainAssets listOf("client.js", "renderer.js", "page1.js", "common.js")
+        for (i in (0..5)) {
+            tmpPage.changeContents(newContentPath = "watch/page1.js")
+            watchObservable.blockingFirst().source("page1.js") shouldContain "Page 1"
 
-        tmpPage.changeContents(newContentPath = "watch/page2.js")
-
-        val secondCompilation = watchObservable.blockingFirst()
-
-        secondCompilation shouldContainAssets listOf("client.js", "renderer.js", "page1.js", "common.js")
-        secondCompilation.assets.find { it.name == "page1.js" }!!.source shouldContain "Page 2"
+            tmpPage.changeContents(newContentPath = "watch/page2.js")
+            watchObservable.blockingFirst().source("page1.js") shouldContain "Page 2"
+        }
     }
 }
 
 fun File.changeContents(newContentPath: String) {
+    // FIXME: one day...
+    Thread.sleep(600)
     val contentsFile = ClassPathResource(newContentPath).file
     this.writeText(contentsFile.readText())
 }
 
-fun createInTempDir(contentPath: String, rootDir:File = createTempDir()): File {
-    rootDir.deleteOnExit()
+fun tmpDir(): File {
+    val tempDir = createTempDir()
+    tempDir.deleteOnExit()
+    return tempDir
+}
 
+fun createFileInTmpDir(contentPath: String, rootDir: File = tmpDir()): File {
     val sourceFile = ClassPathResource(contentPath).file
     val createdFile = File(rootDir, sourceFile.name)
     createdFile.createNewFile()
     createdFile.writeText(sourceFile.readText())
-    // prevents webpack watcher bugs
-//    Files.setLastModifiedTime(createdFile.toPath(), FileTime.fromMillis(0))
-
     return createdFile
 }

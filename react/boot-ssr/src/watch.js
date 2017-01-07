@@ -22,7 +22,8 @@ function watch(options, errorCallback, compilationCallback) {
       compilationCallback(
         stats.compilation.errors,
         stats.compilation.warnings,
-        getAssets(stats.compilation)
+        getAssets(stats.compilation),
+        stats.endTime - stats.startTime
       );
     }
   });

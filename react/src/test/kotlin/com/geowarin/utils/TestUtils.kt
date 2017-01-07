@@ -34,6 +34,11 @@ infix fun CompilationResult.shouldContainAssets(assets: Iterable<String>?) {
     assetsNames shouldEqual assets
 }
 
+fun CompilationResult.source(assetName: String):String {
+    val asset = this.assets.find { it.name == assetName }
+    return asset?.source ?: throw IllegalStateException("Could not find asset ${assetName}")
+}
+
 infix fun CompilationResult.shouldHaveError(errorMessage: String) {
     if (!this.hasErrors()) {
         throw AssertionError("Got errors")

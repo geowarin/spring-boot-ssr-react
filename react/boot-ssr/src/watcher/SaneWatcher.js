@@ -42,6 +42,7 @@ class SaneWatcher extends EventEmitter {
     this.fileTimes = {};
     this.paused = true;
     this.timeoutRef = 0;
+    this.isWatching = false;
   }
 
   /**
@@ -58,15 +59,10 @@ class SaneWatcher extends EventEmitter {
 
     const allFiles = files.concat(dirs);
 
-    this._doInitialScan(allFiles, () => {
-      this._startWatch(allFiles, since, (err) => {
-        if (err) {
-          throw err;
-        }
-
-        done ? done() : null;
-      });
-    });
+    if (!this.isWatching) {
+      this.isWatching = true;
+      this._startWatch(allFiles, since, () => {});
+    }
   }
 
   /**
@@ -127,7 +123,9 @@ class SaneWatcher extends EventEmitter {
     const mtime = stat ? +stat.mtime : null;
     this._setFileTime(filePath, mtime);
 
+    // FIXME : webpack doesn't call pause but this code looks wrong
     if (this.paused || !mtime) {
+      console.log("ignored !", filePath);
       return;
     }
 
@@ -140,7 +138,7 @@ class SaneWatcher extends EventEmitter {
    * @private
    */
   _setFileTime(file, mtime) {
-    this.fileTimes[file] = mtime + fsAccurency.get();
+    this.fileTimes[file] = mtime;
   }
 
   /**
