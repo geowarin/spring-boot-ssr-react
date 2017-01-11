@@ -30,6 +30,11 @@ open class WebpackWatcher(val assetStore: AssetStore) : ApplicationListener<Cont
         val watchDirectories = arrayOf(
                 File("/Users/geowarin/dev/projects/boot-wp/demo/src/main/js/")
         )
-        compiler.watchAsync(*watchDirectories).forEach { res -> assetStore.store(res.assets) }
+        compiler.watchAsync(*watchDirectories).forEach { res ->
+            run {
+                println("Compiled in ${res.compileTime}ms")
+                assetStore.store(res.assets)
+            }
+        }
     }
 }

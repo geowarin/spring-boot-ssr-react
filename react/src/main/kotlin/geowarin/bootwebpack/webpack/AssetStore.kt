@@ -17,6 +17,10 @@ open class AssetStore {
         return assets.get(requestPath)
     }
 
+    fun hasAsset(requestPath: String): Boolean {
+        return assets.contains(requestPath)
+    }
+
     fun getAssetAsResource(requestPath: String, modulePath: String?): Resource? {
         val asset = getAsset(requestPath)
         if (asset != null) {

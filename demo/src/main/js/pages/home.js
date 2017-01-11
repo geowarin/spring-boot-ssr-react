@@ -1,8 +1,9 @@
 import React from 'react';
+import Container from './Container'
 
 export default class home extends React.Component {
 
     render() {
-        return <div>Hey tati, {this.props.model.message}</div>;
+      return <Container />
     }
 }

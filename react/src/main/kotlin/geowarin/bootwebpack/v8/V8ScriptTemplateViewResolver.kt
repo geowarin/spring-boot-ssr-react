@@ -10,6 +10,7 @@ class V8ScriptTemplateViewResolver() : UrlBasedViewResolver() {
     constructor(prefix: String, suffix: String) : this() {
         setPrefix(prefix)
         setSuffix(suffix)
+        isCache = false
     }
 
     override fun requiredViewClass(): Class<*> {

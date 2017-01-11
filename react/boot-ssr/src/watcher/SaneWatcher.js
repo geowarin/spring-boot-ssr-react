@@ -5,7 +5,6 @@ const EventEmitter = require('events');
 const fs = require('fs');
 const path = require('path');
 const sane = require('sane');
-const fsAccurency = require('./utils/fsAccurency');
 
 /**
  * A sane watcher that watches multiple direcotries
@@ -30,7 +29,6 @@ class MultiWatcher extends EventEmitter {
 
 class SaneWatcher extends EventEmitter {
 
-  //: Options = { aggregateTimeout: 200, projectPath: '' }
   constructor(options) {
     super();
     if (!Array.isArray(options.watchDirectories)) {
@@ -45,40 +43,24 @@ class SaneWatcher extends EventEmitter {
     this.isWatching = false;
   }
 
-  /**
-   * @param files:Array<string>
-   * @param dirs:Array<string>
-   * @param since:string|number
-   * @param done?: () => void
-   *
-   * `since` has to be either a string with a watchman clock value, or a number
-   * which is then treated as a timestamp in milliseconds
-   */
-  watch(files, dirs, since, done) {
+  watch(files, dirs, since) {
     this.paused = false;
-
-    const allFiles = files.concat(dirs);
 
     if (!this.isWatching) {
       this.isWatching = true;
+      const allFiles = files.concat(dirs);
       this._startWatch(allFiles, since, () => {});
+    } else {
+      this.restoreTimeout();
     }
   }
 
-  /**
-   * { [key: string]: number }
-   * @return
-   */
   getTimes() {
     return this.fileTimes;
   }
 
   close() {
-    this.paused = true;
-    if (this.timeoutRef) {
-      clearTimeout(this.timeoutRef);
-    }
-
+    this.pause();
     if (this.watcher) {
       this.watcher.close();
       this.watcher = null;
@@ -87,17 +69,9 @@ class SaneWatcher extends EventEmitter {
 
   pause() {
     this.paused = true;
-    if (this.timeoutRef) {
-      clearTimeout(this.timeoutRef);
-    }
+    this.clearTimeout();
   }
 
-  /**
-   * @param files: Array<string>
-   * @param since: string|number
-   * @param done: () => void
-   * @private
-   */
   _startWatch(files, since, done) {
     const options = {glob: ['**/*.js', '**/*.css']};
     this.watcher = new MultiWatcher(this.options.watchDirectories, options);
@@ -123,48 +97,41 @@ class SaneWatcher extends EventEmitter {
     const mtime = stat ? +stat.mtime : null;
     this._setFileTime(filePath, mtime);
 
-    // FIXME : webpack doesn't call pause but this code looks wrong
+    this.addAggregatedChange(filePath);
+
     if (this.paused || !mtime) {
-      console.log("ignored !", filePath);
       return;
     }
 
     this._handleEvents(filePath, mtime);
   }
 
-  /**
-   * @param file: string
-   * @param mtime: ?number
-   * @private
-   */
+  addAggregatedChange(filePath) {
+    if (this.aggregatedChanges.indexOf(filePath) < 0) {
+      this.aggregatedChanges.push(filePath);
+    }
+  }
+
   _setFileTime(file, mtime) {
     this.fileTimes[file] = mtime;
   }
 
-  /**
-   * @param filePath: string
-   * @param mtime: ?number
-   * @private
-   */
   _handleEvents(filePath, mtime) {
     this.emit('change', filePath, mtime);
-
-    this._handleAggregated(filePath);
+    this.clearTimeout();
+    this.restoreTimeout();
   }
 
-  /**
-   * @param file: string
-   * @private
-   */
-  _handleAggregated(file) {
+  clearTimeout() {
     if (this.timeoutRef) {
       clearTimeout(this.timeoutRef);
     }
+  }
 
-    if (this.aggregatedChanges.indexOf(file) < 0) {
-      this.aggregatedChanges.push(file);
+  restoreTimeout() {
+    if (this.aggregatedChanges.length === 0) {
+      return;
     }
-
     this.timeoutRef = setTimeout(() => this._onTimeout(), this.options.aggregateTimeout);
   }
 
@@ -172,16 +139,13 @@ class SaneWatcher extends EventEmitter {
     this.timeoutRef = 0;
     const changes = this.aggregatedChanges;
     this.aggregatedChanges = [];
-
     this.emit('aggregated', changes);
   };
 
-  /**
-   * @param files: Array<string>
-   * @param done: () => void
-   * @private
-   */
-  _doInitialScan(files, done) {
+  // This doesn't serve any purpose since webpack seems to not be
+  // interested in getTimes()
+  // We might want to uncomment this if this proves false
+ /* _doInitialScan(files, done) {
     async.eachLimit(files, 500, (file, callback) => {
       fs.stat(file, (err, stat) => {
         if (err) {
@@ -190,7 +154,6 @@ class SaneWatcher extends EventEmitter {
         }
 
         const mtime = +stat.mtime;
-        fsAccurency.revalidate(mtime);
 
         this._setFileTime(file, mtime);
         callback();
@@ -199,6 +162,7 @@ class SaneWatcher extends EventEmitter {
       done();
     });
   }
+  */
 }
 
 module.exports = SaneWatcher;
