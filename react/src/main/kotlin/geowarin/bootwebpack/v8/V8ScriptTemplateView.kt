@@ -5,6 +5,7 @@ import com.eclipsesource.v8.V8ScriptException
 import com.fasterxml.jackson.databind.ObjectMapper
 import geowarin.bootwebpack.template.SimpleTemplate
 import geowarin.bootwebpack.webpack.AssetStore
+import mu.KotlinLogging
 import org.springframework.beans.factory.BeanFactoryUtils.beanOfTypeIncludingAncestors
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class V8ScriptTemplateView() : AbstractUrlBasedView() {
+    private val log = KotlinLogging.logger {}
     private val CHARSET = Charset.forName("UTF-8")
     private var assetStore: AssetStore? = null
 
@@ -52,21 +54,25 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
 
         } catch (e: V8ScriptException) {
 
-            System.err.println(e)
-
-            val errorTemplate =
-                    SimpleTemplate.fromResource(ClassPathResource("templates/error.html"))
-                            .template(
-                                    "message" to (e.message ?: ""),
-                                    "jsStack" to e.jsStackTrace
-                            )
-                            .toString()
-
+            log.error { "Error while rendering the page $url:\n ${e.message}\n ${e.jsStackTrace}"}
+            val errorTemplate = error(e)
             response.writer.write(errorTemplate)
 
         } finally {
             v8Script.release()
         }
+    }
+
+    private fun error(e: V8ScriptException): String {
+        val errorTemplate =
+                SimpleTemplate.fromResource(ClassPathResource("templates/error.html"))
+                        .template(
+                                "message" to (e.message ?: ""),
+                                "jsStack" to e.jsStackTrace,
+                                "path" to url
+                        )
+                        .toString()
+        return errorTemplate
     }
 
     private fun indexTemplate(componentPropsJson: String, renderedHtml: String): String {

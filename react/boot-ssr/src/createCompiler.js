@@ -8,7 +8,7 @@ const MemoryFileSystem = require('memory-fs');
 const SaneWatcherPlugin = require('./watcher/SaneWatcherPlugin');
 
 const config = (entries, rootDir, watchDirectories) => ({
-  // devtool: 'cheap-module-source-map',
+  devtool: 'inline-source-map',
   entry: entries,
   output: {
     path: path.join(__dirname, 'dist'),

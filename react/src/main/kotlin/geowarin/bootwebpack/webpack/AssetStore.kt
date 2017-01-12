@@ -14,7 +14,7 @@ open class AssetStore {
     }
 
     fun getAsset(requestPath: String): Asset? {
-        return assets.get(requestPath)
+        return assets[requestPath]
     }
 
     fun hasAsset(requestPath: String): Boolean {
