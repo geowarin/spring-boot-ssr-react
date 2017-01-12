@@ -1,11 +1,13 @@
 package geowarin.bootwebpack
 
+import geowarin.bootwebpack.config.ReactSsrProperties
 import geowarin.bootwebpack.v8.V8ScriptTemplateViewResolver
 import geowarin.bootwebpack.webpack.AssetStore
 import geowarin.bootwebpack.webpack.WebpackResourceResolver
 import geowarin.bootwebpack.webpack.WebpackWatcher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.web.ResourceProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
@@ -14,6 +16,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Configuration
+@EnableConfigurationProperties(ReactSsrProperties::class)
 open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
 
     @Autowired
@@ -32,8 +35,8 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
     }
 
     @Bean
-    open fun webpackWatcher(): WebpackWatcher {
-        return WebpackWatcher(assetStore())
+    open fun webpackWatcher(properties: ReactSsrProperties): WebpackWatcher {
+        return WebpackWatcher(assetStore(), properties)
     }
 
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
