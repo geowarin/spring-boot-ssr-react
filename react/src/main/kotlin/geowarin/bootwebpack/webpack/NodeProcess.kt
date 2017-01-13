@@ -2,11 +2,12 @@ package geowarin.bootwebpack.webpack
 
 import com.eclipsesource.v8.*
 import com.eclipsesource.v8.utils.V8ObjectUtils
+import geowarin.bootwebpack.v8.V8Convertible
 import java.io.Closeable
 import java.io.File
 import kotlin.concurrent.thread
 
-data class NamedObject(val name:String, val value:V8Convertible<*>)
+data class NamedObject(val name:String, val value: V8Convertible<*>)
 data class NamedMethod(val name:String, val method:(V8Array) -> Unit)
 
 class NodeProcess(val scriptFile: File) : Closeable {

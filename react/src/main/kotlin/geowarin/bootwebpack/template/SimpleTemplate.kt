@@ -17,14 +17,17 @@ val defaultHtml: String = """
 """
 
 class SimpleTemplate(html: String = defaultHtml) {
+    internal var document: Document
+
+    init {
+        document = parse(html)
+    }
 
     companion object Factory {
         fun fromResource(resource: Resource): SimpleTemplate {
             return SimpleTemplate(resource.file.readText())
         }
     }
-
-    internal var document: Document
 
     fun setTitle(title: String): SimpleTemplate {
         document.title(title)
@@ -58,10 +61,6 @@ class SimpleTemplate(html: String = defaultHtml) {
 
     override fun toString(): String {
         return document.toString()
-    }
-
-    init {
-        document = parse(html)
     }
 
     private fun parse(html: String): Document {

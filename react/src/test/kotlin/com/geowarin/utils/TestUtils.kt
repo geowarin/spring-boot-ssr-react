@@ -2,7 +2,7 @@ package com.geowarin.utils
 
 import geowarin.bootwebpack.extensions.withoutExt
 import geowarin.bootwebpack.webpack.CompilationResult
-import geowarin.bootwebpack.webpack.Options
+import geowarin.bootwebpack.webpack.WebpackCompilerOptions
 import geowarin.bootwebpack.webpack.Page
 import geowarin.bootwebpack.webpack.WebpackCompiler
 import org.amshove.kluent.shouldEqual
@@ -12,9 +12,9 @@ import org.springframework.core.io.ClassPathResource
 import java.io.File
 import java.nio.file.Files
 
-fun pageOptions(vararg pagePaths: String): Options {
+fun pageOptions(vararg pagePaths: String): WebpackCompilerOptions {
     val pages = pagePaths.map { ClassPathResource(it).file }
-    return Options( pages = toPages(*pages.toTypedArray()))
+    return WebpackCompilerOptions( pages = toPages(*pages.toTypedArray()))
 }
 
 fun toPages(vararg pagePaths: File): List<Page> {

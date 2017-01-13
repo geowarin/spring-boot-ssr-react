@@ -8,6 +8,7 @@ function watch(options, errorCallback, compilationCallback) {
 
   const bootSsrModuleDir = path.join(__dirname, '..');
 
+  // TODO: hot reloading
   const compiler = createCompiler(bootSsrModuleDir, options);
   const watchOptions = {
     aggregateTimeout: 300

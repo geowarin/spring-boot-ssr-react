@@ -26,6 +26,8 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
 
     fun watch(projectDir: File) {
 
+        // TODO: extract this and test
+        // TODO: check if production
         val jsSourceDir = File(projectDir, properties.jsSourceDirectory)
         if (!jsSourceDir.exists()) {
             throw IllegalStateException("Could not find js source directory ${jsSourceDir.canonicalPath}")
@@ -58,12 +60,13 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
         val compiler = WebpackCompiler(
                 bootSsrDirectory = bootSsrNodeModulePath
         )
-        val options = Options(
+        val options = WebpackCompilerOptions(
                 pages = pages,
                 watchDirectories = listOf(jsSourceDir.canonicalPath)
         )
         compiler.watchAsync(options).forEach { res ->
             run {
+                // TODO: check errors
                 logger.info { "${res.assets.size} webpack assets compiled in ${res.compileTime}ms" }
                 assetStore.store(res.assets)
             }

@@ -2,6 +2,8 @@ package geowarin.bootwebpack.webpack
 
 import com.eclipsesource.v8.V8Array
 import com.eclipsesource.v8.V8Object
+import geowarin.bootwebpack.v8.V8Convertible
+import geowarin.bootwebpack.v8.mappedBy
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
@@ -15,40 +17,24 @@ data class Page(
         var file: File,
         val name: String
 ) : V8Convertible<Page>(
-        { "file" isA it.file.canonicalPath },
-        { "name" isA it.name }
+        { "file" mappedBy it.file.canonicalPath },
+        { "name" mappedBy it.name }
 )
 
-data class Options(
+data class WebpackCompilerOptions(
         val pages: List<Page>,
         val watchDirectories: List<String> = listOf()
-) : V8Convertible<Options>(
-        { "pages" isA it.pages },
-        { "watchDirectories" isA it.watchDirectories }
+) : V8Convertible<WebpackCompilerOptions>(
+        { "pages" mappedBy it.pages },
+        { "watchDirectories" mappedBy it.watchDirectories }
 )
 
-infix fun <A, B : V8Convertible<*>> A.isA(that: B): Pair<A, Any> = Pair(this, that.toMap())
-infix fun <A, B> A.isA(that: B): Pair<A, B> = Pair(this, that)
-infix fun <A, B : List<V8Convertible<*>>> A.isA(that: B): Pair<A, Any> = Pair(this, that.map { it.toMap() })
-
-abstract class V8Convertible<T>(vararg val props: (T) -> Pair<String, Any?>) {
-
-    @Suppress("UNCHECKED_CAST")
-    fun getThis(): T {
-        return this as T
-    }
-
-    fun toMap(): Map<String, *> {
-        return props.map { it.invoke(getThis()) }.toMap()
-    }
-}
-
-
+// TODO: put bootSsrDirectory in options
 class WebpackCompiler(var bootSsrDirectory: File) {
     val listeners: Queue<(CompilationResult) -> Unit> = ConcurrentLinkedQueue()
     lateinit var nodeProcess: NodeProcess
 
-    fun compile(options: Options): CompilationResult {
+    fun compile(options: WebpackCompilerOptions): CompilationResult {
         val watchScript = File(bootSsrDirectory, "bin/compileEntry.js")
         val nodeProcess = createNodeProcess(watchScript, options)
         nodeProcess.startAsync()
@@ -57,7 +43,7 @@ class WebpackCompiler(var bootSsrDirectory: File) {
         return observable.blockingFirst()
     }
 
-    fun watchAsync(options: Options): Flowable<CompilationResult> {
+    fun watchAsync(options: WebpackCompilerOptions): Flowable<CompilationResult> {
         val watchScript = File(bootSsrDirectory, "bin/watchEntry.js")
         nodeProcess = createNodeProcess(watchScript, options)
         nodeProcess.startAsync()
@@ -77,14 +63,8 @@ class WebpackCompiler(var bootSsrDirectory: File) {
         nodeProcess.stop()
     }
 
-    private fun createNodeProcess(nodeScript: File, options: Options): NodeProcess {
+    private fun createNodeProcess(nodeScript: File, options: WebpackCompilerOptions): NodeProcess {
         val nodeProcess = NodeProcess(nodeScript)
-
-//        val pagesV8 = pages.map { Page(it, it.name) }
-//        val options = Options(
-//                pages = pagesV8,
-//                watchDirectories = watchDirectories.map { it.canonicalPath }
-//        )
         nodeProcess.addObj("options", options)
 
         nodeProcess.registerJavaMethod("errorCallback") { args ->

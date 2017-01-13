@@ -4,7 +4,7 @@ import com.geowarin.utils.createTestCompiler
 import com.geowarin.utils.pageOptions
 import com.geowarin.utils.toPages
 import com.geowarin.utils.source
-import geowarin.bootwebpack.webpack.Options
+import geowarin.bootwebpack.webpack.WebpackCompilerOptions
 import geowarin.bootwebpack.webpack.Page
 import org.amshove.kluent.shouldContain
 import org.junit.Test
@@ -29,7 +29,7 @@ class WebpackCompilerWatchTest {
         val rootDir = tmpDir()
         val tmpPage = createFileInTmpDir(contentPath = "watch/page1.js", rootDir = rootDir)
 
-        val options = Options(
+        val options = WebpackCompilerOptions(
                 watchDirectories = listOf(rootDir.canonicalPath),
                 pages = listOf(Page(file = tmpPage, name = "page1"))
         )
