@@ -1,7 +1,7 @@
-package com.geowarin
+package geowarin.bootwebpack.v8
 
-import com.geowarin.utils.createTestCompiler
-import com.geowarin.utils.pageOptions
+import geowarin.bootwebpack.utils.createTestCompiler
+import geowarin.bootwebpack.utils.pageOptions
 import geowarin.bootwebpack.v8.V8ScriptTemplateView
 import geowarin.bootwebpack.webpack.AssetStore
 import org.amshove.kluent.shouldEqual
@@ -11,7 +11,7 @@ import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 
-class TemplateViewTests {
+class V8ScriptTemplateViewTests {
 
     @Test
     fun should_render() {

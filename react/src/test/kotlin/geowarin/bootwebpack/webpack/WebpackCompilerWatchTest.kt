@@ -1,9 +1,9 @@
-package com.geowarin
+package geowarin.bootwebpack.webpack
 
-import com.geowarin.utils.createTestCompiler
-import com.geowarin.utils.pageOptions
-import com.geowarin.utils.toPages
-import com.geowarin.utils.source
+import geowarin.bootwebpack.utils.createTestCompiler
+import geowarin.bootwebpack.utils.pageOptions
+import geowarin.bootwebpack.utils.toPages
+import geowarin.bootwebpack.utils.source
 import geowarin.bootwebpack.webpack.WebpackCompilerOptions
 import geowarin.bootwebpack.webpack.Page
 import org.amshove.kluent.shouldContain

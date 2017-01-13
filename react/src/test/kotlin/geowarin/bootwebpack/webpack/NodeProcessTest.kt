@@ -1,6 +1,6 @@
 package geowarin.bootwebpack.webpack
 
-import com.geowarin.utils.asFile
+import geowarin.bootwebpack.utils.asFile
 import org.junit.Test
 import java.io.File
 

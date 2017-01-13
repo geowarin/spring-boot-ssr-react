@@ -1,4 +1,4 @@
-package com.geowarin.utils
+package geowarin.bootwebpack.utils
 
 import geowarin.bootwebpack.extensions.withoutExt
 import geowarin.bootwebpack.webpack.CompilationResult
