@@ -6,9 +6,9 @@ const getAssets = require('./getAssets');
 
 function watch(options, errorCallback, compilationCallback) {
 
-  const rootDir = path.join(__dirname, '..');
+  const bootSsrModuleDir = path.join(__dirname, '..');
 
-  const compiler = createCompiler(rootDir, options);
+  const compiler = createCompiler(bootSsrModuleDir, options);
   const watchOptions = {
     aggregateTimeout: 300
   };

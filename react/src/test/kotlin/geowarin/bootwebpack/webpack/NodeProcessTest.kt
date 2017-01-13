@@ -2,33 +2,19 @@ package geowarin.bootwebpack.webpack
 
 import com.geowarin.utils.asFile
 import org.junit.Test
+import java.io.File
 
 class NodeProcessTest {
 
     @Test
-    fun shouldAddStringToRuntime() {
-        val script = """ console.log(thing) """.asFile()
+    fun shouldAddV8ConvertibleToRuntime() {
+        val page = Page(File("/Users/geowarin"), "geowarin")
+        val options = Options(listOf(page))
+
+        val script = """ console.assert(options.pages[0].name == 'geowarin') """.asFile()
         val nodeProcess = NodeProcess(script)
 
-        nodeProcess.addObj("thing", "hey")
-        nodeProcess.startSync()
-    }
-
-    @Test
-    fun shouldAddArrayToRuntime() {
-        val script = """ console.log(thing) """.asFile()
-        val nodeProcess = NodeProcess(script)
-
-        nodeProcess.addObj("thing", listOf("hello"))
-        nodeProcess.startSync()
-    }
-
-    @Test
-    fun shouldAddMapToRuntime() {
-        val script = """ console.log(thing) """.asFile()
-        val nodeProcess = NodeProcess(script)
-
-        nodeProcess.addObj("thing", mapOf("key" to "value"))
+        nodeProcess.addObj("options", options)
         nodeProcess.startSync()
     }
 }

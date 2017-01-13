@@ -11,22 +11,55 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 //typealias CompilationListener = (CompilationResult) -> Unit
 
-class WebpackCompiler(var bootSsrDirectory: File, val pages: Iterable<File>) {
+data class Page(
+        var file: File,
+        val name: String
+) : V8Convertible<Page>(
+        { "file" isA it.file.canonicalPath },
+        { "name" isA it.name }
+)
+
+data class Options(
+        val pages: List<Page>,
+        val watchDirectories: List<String> = listOf()
+) : V8Convertible<Options>(
+        { "pages" isA it.pages },
+        { "watchDirectories" isA it.watchDirectories }
+)
+
+infix fun <A, B : V8Convertible<*>> A.isA(that: B): Pair<A, Any> = Pair(this, that.toMap())
+infix fun <A, B> A.isA(that: B): Pair<A, B> = Pair(this, that)
+infix fun <A, B : List<V8Convertible<*>>> A.isA(that: B): Pair<A, Any> = Pair(this, that.map { it.toMap() })
+
+abstract class V8Convertible<T>(vararg val props: (T) -> Pair<String, Any?>) {
+
+    @Suppress("UNCHECKED_CAST")
+    fun getThis(): T {
+        return this as T
+    }
+
+    fun toMap(): Map<String, *> {
+        return props.map { it.invoke(getThis()) }.toMap()
+    }
+}
+
+
+class WebpackCompiler(var bootSsrDirectory: File) {
     val listeners: Queue<(CompilationResult) -> Unit> = ConcurrentLinkedQueue()
     lateinit var nodeProcess: NodeProcess
 
-    fun compile(): CompilationResult {
+    fun compile(options: Options): CompilationResult {
         val watchScript = File(bootSsrDirectory, "bin/compileEntry.js")
-        val nodeProcess = createNodeProcess(watchScript)
+        val nodeProcess = createNodeProcess(watchScript, options)
         nodeProcess.startAsync()
 
         val observable = createObservable(BackpressureStrategy.DROP)
         return observable.blockingFirst()
     }
 
-    fun watchAsync(vararg watchDirectories:File): Flowable<CompilationResult> {
+    fun watchAsync(options: Options): Flowable<CompilationResult> {
         val watchScript = File(bootSsrDirectory, "bin/watchEntry.js")
-        nodeProcess = createNodeProcess(watchScript, watchDirectories.toList())
+        nodeProcess = createNodeProcess(watchScript, options)
         nodeProcess.startAsync()
 
         return createObservable(BackpressureStrategy.BUFFER)
@@ -44,13 +77,14 @@ class WebpackCompiler(var bootSsrDirectory: File, val pages: Iterable<File>) {
         nodeProcess.stop()
     }
 
-    private fun createNodeProcess(nodeScript: File, watchDirectories:List<File> = listOf()): NodeProcess {
+    private fun createNodeProcess(nodeScript: File, options: Options): NodeProcess {
         val nodeProcess = NodeProcess(nodeScript)
 
-        val options = mapOf<String, Any>(
-                "pages" to pages.map { it.canonicalPath },
-                "watchDirectories" to watchDirectories.map { it.canonicalPath }
-        )
+//        val pagesV8 = pages.map { Page(it, it.name) }
+//        val options = Options(
+//                pages = pagesV8,
+//                watchDirectories = watchDirectories.map { it.canonicalPath }
+//        )
         nodeProcess.addObj("options", options)
 
         nodeProcess.registerJavaMethod("errorCallback") { args ->

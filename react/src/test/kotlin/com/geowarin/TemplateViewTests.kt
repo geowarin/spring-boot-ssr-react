@@ -1,6 +1,7 @@
 package com.geowarin
 
 import com.geowarin.utils.createTestCompiler
+import com.geowarin.utils.pageOptions
 import geowarin.bootwebpack.v8.V8ScriptTemplateView
 import geowarin.bootwebpack.webpack.AssetStore
 import org.amshove.kluent.shouldEqual
@@ -36,9 +37,9 @@ class TemplateViewTests {
 
 fun compile(): AssetStore {
 
-    val compiler = createTestCompiler("home.js")
+    val compiler = createTestCompiler()
 
-    val compilation = compiler.compile()
+    val compilation = compiler.compile(pageOptions("home.js"))
     if (compilation.hasErrors()) {
         throw AssertionError("Could not compile: ${compilation.errors}")
     }

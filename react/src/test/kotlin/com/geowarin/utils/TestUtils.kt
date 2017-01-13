@@ -1,6 +1,9 @@
 package com.geowarin.utils
 
+import geowarin.bootwebpack.extensions.withoutExt
 import geowarin.bootwebpack.webpack.CompilationResult
+import geowarin.bootwebpack.webpack.Options
+import geowarin.bootwebpack.webpack.Page
 import geowarin.bootwebpack.webpack.WebpackCompiler
 import org.amshove.kluent.shouldEqual
 import org.amshove.kluent.shouldEqualTo
@@ -9,18 +12,17 @@ import org.springframework.core.io.ClassPathResource
 import java.io.File
 import java.nio.file.Files
 
-fun createTestCompiler(vararg pagePaths: String): WebpackCompiler {
+fun pageOptions(vararg pagePaths: String): Options {
     val pages = pagePaths.map { ClassPathResource(it).file }
-    val compiler = WebpackCompiler(
-            pages = pages,
-            bootSsrDirectory = File("/Users/geowarin/dev/projects/boot-wp/react/boot-ssr")
-    )
-    return compiler
+    return Options( pages = toPages(*pages.toTypedArray()))
 }
 
-fun createTestCompiler(vararg pages: File): WebpackCompiler {
+fun toPages(vararg pagePaths: File): List<Page> {
+    return pagePaths.map { (Page(it, it.name.withoutExt())) };
+}
+
+fun createTestCompiler(): WebpackCompiler {
     val compiler = WebpackCompiler(
-            pages = listOf(*pages),
             bootSsrDirectory = File("/Users/geowarin/dev/projects/boot-wp/react/boot-ssr")
     )
     return compiler

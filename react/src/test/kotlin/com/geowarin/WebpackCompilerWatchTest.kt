@@ -1,7 +1,11 @@
 package com.geowarin
 
 import com.geowarin.utils.createTestCompiler
+import com.geowarin.utils.pageOptions
+import com.geowarin.utils.toPages
 import com.geowarin.utils.source
+import geowarin.bootwebpack.webpack.Options
+import geowarin.bootwebpack.webpack.Page
 import org.amshove.kluent.shouldContain
 import org.junit.Test
 import org.springframework.core.io.ClassPathResource
@@ -25,7 +29,12 @@ class WebpackCompilerWatchTest {
         val rootDir = tmpDir()
         val tmpPage = createFileInTmpDir(contentPath = "watch/page1.js", rootDir = rootDir)
 
-        val watchObservable = createTestCompiler(tmpPage).watchAsync(rootDir)
+        val options = Options(
+                watchDirectories = listOf(rootDir.canonicalPath),
+                pages = listOf(Page(file = tmpPage, name = "page1"))
+        )
+
+        val watchObservable = createTestCompiler().watchAsync(options)
 
         for (i in (0..5)) {
             tmpPage.changeContents(newContentPath = "watch/page1.js")

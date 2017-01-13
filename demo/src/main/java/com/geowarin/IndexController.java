@@ -8,6 +8,6 @@ public class IndexController {
 
     @GetMapping("/toto")
     public String index() {
-        return "home";
+        return "sub/subPage";
     }
 }

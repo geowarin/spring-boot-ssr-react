@@ -59,20 +59,19 @@ const config = (entries, rootDir, watchDirectories) => ({
 });
 
 function getPagesEntry(pages) {
-  const entries = pages.reduce((entries, pagePath) => {
-    let pageName = path.basename(pagePath, '.js');
+  const entries = pages.reduce((entries, page) => {
     return Object.assign(entries, {
-      [pageName]: pagePath
+      [page.name]: page.file
     })
   }, {});
   return entries;
 }
 
-function createCompiler(rootDir, options) {
+function createCompiler(bootSsrModuleDir, options) {
   const entries = getPagesEntry(options.pages);
-  entries['client'] = path.join(rootDir, "src/client/client.js");
-  entries['renderer'] = path.join(rootDir, "src/server/renderer.js");
-  let compiler = webpack(config(entries, rootDir, options.watchDirectories));
+  entries['client'] = path.join(bootSsrModuleDir, "src/client/client.js");
+  entries['renderer'] = path.join(bootSsrModuleDir, "src/server/renderer.js");
+  let compiler = webpack(config(entries, bootSsrModuleDir, options.watchDirectories));
   compiler.outputFileSystem = new MemoryFileSystem();
   return compiler;
 }

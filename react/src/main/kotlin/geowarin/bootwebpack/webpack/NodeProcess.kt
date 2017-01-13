@@ -6,7 +6,7 @@ import java.io.Closeable
 import java.io.File
 import kotlin.concurrent.thread
 
-data class NamedObject(val name:String, val value:Any)
+data class NamedObject(val name:String, val value:V8Convertible<*>)
 data class NamedMethod(val name:String, val method:(V8Array) -> Unit)
 
 class NodeProcess(val scriptFile: File) : Closeable {
@@ -43,18 +43,9 @@ class NodeProcess(val scriptFile: File) : Closeable {
     }
 
     private fun addToRuntime(obj: NamedObject, runtime: V8) {
-        val v8thing = V8ObjectUtils.getV8Result(runtime, obj.value)
-        when (v8thing) {
-            is Int -> runtime.add(obj.name, v8thing)
-            is Boolean -> runtime.add(obj.name, v8thing)
-            is Double -> runtime.add(obj.name, v8thing)
-            is String -> runtime.add(obj.name, v8thing)
-            is V8Value -> {
-                runtime.add(obj.name, v8thing)
-                v8thing.release()
-            }
-            else -> throw IllegalArgumentException("Could not convert value")
-        }
+        val v8Object = V8ObjectUtils.toV8Object(runtime, obj.value.toMap())
+        runtime.add(obj.name, v8Object)
+        v8Object.release()
     }
 
     fun stop() {
@@ -65,7 +56,7 @@ class NodeProcess(val scriptFile: File) : Closeable {
         methods.add(NamedMethod(name, method))
     }
 
-    fun addObj(name: String, source: Any) {
+    fun addObj(name: String, source: V8Convertible<*>) {
         objects.add(NamedObject(name, source))
     }
 

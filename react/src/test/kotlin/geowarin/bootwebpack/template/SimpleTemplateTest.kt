@@ -44,7 +44,16 @@ class SimpleTemplateTest {
     @Test
     fun shouldBeTemplatable() {
         val simpleTemplate = SimpleTemplate("""<html><div id="app">{html}</div></html>""")
-        simpleTemplate.template("html" to "<div>Hello</div>")
+        simpleTemplate.template("html" to "Hello")
+
+        val html = simpleTemplate.toString()
+        html shouldEqual """<html><head></head><body><div id="app">Hello</div></body></html>"""
+    }
+
+    @Test
+    fun shouldInsertInElement() {
+        val simpleTemplate = SimpleTemplate("""<html><div id="app">{html}</div></html>""")
+        simpleTemplate.replaceNodeContent("#app", "<div>Hello</div>")
 
         val html = simpleTemplate.toString()
         html shouldEqual """<html><head></head><body><div id="app"><div>Hello</div></div></body></html>"""

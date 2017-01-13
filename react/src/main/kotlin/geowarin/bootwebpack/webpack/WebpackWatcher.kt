@@ -1,6 +1,7 @@
 package geowarin.bootwebpack.webpack
 
 import geowarin.bootwebpack.config.ReactSsrProperties
+import geowarin.bootwebpack.extensions.pathWithoutExt
 import mu.KotlinLogging
 import org.springframework.boot.ApplicationHome
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -45,7 +46,9 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
             logger.warn { "Pages dir does not exist!" }
         }
 
-        val pages = pagesDir.walk().filter { f -> f.isFile }.toList()
+        val pagesFile = pagesDir.walk().filter { f -> f.isFile }.toList()
+        val pages = pagesFile.map { Page(name = it.relativeTo(pagesDir).pathWithoutExt(), file = it) }
+
         logger.info { "Found ${pages.size} react pages" }
 
         if (pages.isEmpty()) {
@@ -53,11 +56,13 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
         }
 
         val compiler = WebpackCompiler(
-                pages = pages,
                 bootSsrDirectory = bootSsrNodeModulePath
         )
-        val watchDirectories = arrayOf(jsSourceDir)
-        compiler.watchAsync(*watchDirectories).forEach { res ->
+        val options = Options(
+                pages = pages,
+                watchDirectories = listOf(jsSourceDir.canonicalPath)
+        )
+        compiler.watchAsync(options).forEach { res ->
             run {
                 logger.info { "${res.assets.size} webpack assets compiled in ${res.compileTime}ms" }
                 assetStore.store(res.assets)
