@@ -7,6 +7,8 @@
     "boot-ssr": "./bin/boot-ssr.js"
   },
   "dependencies": {
+    "@webpack-blocks/babel6": "^0.3.0",
+    "@webpack-blocks/core": "^0.4.0-rc",
     "async": "^2.1.4",
     "axios": "^0.15.3",
     "babel-core": "^6.20.0",

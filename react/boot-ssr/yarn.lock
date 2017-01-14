@@ -2,6 +2,19 @@
 # yarn lockfile v1
 
 
+"@webpack-blocks/babel6@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@webpack-blocks/babel6/-/babel6-0.3.0.tgz#98589db066bc6003dd209cf64fd5ae90d9b23e45"
+  dependencies:
+    babel-core "^6.17.0"
+    babel-loader "^6.2.5"
+
+"@webpack-blocks/core@^0.4.0-rc":
+  version "0.4.0-rc"
+  resolved "https://registry.yarnpkg.com/@webpack-blocks/core/-/core-0.4.0-rc.tgz#202ce8e8d4d12415295d30d56137de2df806ed3c"
+  dependencies:
+    webpack-merge "^2.3.1"
+
 abbrev@1:
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.0.9.tgz#91b4792588a7738c25f35dd6f63752a2f8776135"
@@ -155,7 +168,7 @@ babel-code-frame@^6.20.0:
     esutils "^2.0.2"
     js-tokens "^2.0.0"
 
-babel-core@^6.18.0, babel-core@^6.20.0:
+babel-core@^6.17.0, babel-core@^6.18.0, babel-core@^6.20.0:
   version "6.21.0"
   resolved "https://registry.yarnpkg.com/babel-core/-/babel-core-6.21.0.tgz#75525480c21c803f826ef3867d22c19f080a3724"
   dependencies:
@@ -301,7 +314,7 @@ babel-helpers@^6.16.0:
     babel-runtime "^6.0.0"
     babel-template "^6.16.0"
 
-babel-loader@^6.2.9:
+babel-loader@^6.2.5, babel-loader@^6.2.9:
   version "6.2.10"
   resolved "https://registry.yarnpkg.com/babel-loader/-/babel-loader-6.2.10.tgz#adefc2b242320cd5d15e65b31cea0e8b1b02d4b0"
   dependencies:
@@ -1690,9 +1703,13 @@ loader-utils@^0.2.11, loader-utils@^0.2.16:
     json5 "^0.5.0"
     object-assign "^4.0.1"
 
-lodash@^4.14.0, lodash@^4.2.0, lodash@^4.3.0:
+lodash@^4.14.0, lodash@^4.2.0:
   version "4.17.3"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.3.tgz#557ed7d2a9438cac5fd5a43043ca60cb455e01f7"
+
+lodash@^4.17.4, lodash@^4.3.0:
+  version "4.17.4"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
 longest@^1.0.1:
   version "1.0.1"
@@ -2551,6 +2568,12 @@ watchpack@^1.0.0:
     async "2.0.0-rc.4"
     chokidar "^1.4.3"
     graceful-fs "^4.1.2"
+
+webpack-merge@^2.3.1:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/webpack-merge/-/webpack-merge-2.4.0.tgz#4c518d471632c29ae22e83687c2f42a9cd5f35ea"
+  dependencies:
+    lodash "^4.17.4"
 
 webpack-sources@^0.1.0:
   version "0.1.3"

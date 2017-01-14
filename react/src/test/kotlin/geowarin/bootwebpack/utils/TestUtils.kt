@@ -26,7 +26,7 @@ fun toPages(vararg pagePaths: Path): List<Page> {
 
 infix fun CompilationResult.shouldContainAssets(assets: Iterable<String>?) {
     if (this.hasErrors()) {
-        throw AssertionError("Compilation should be successful")
+        throw AssertionError("Compilation should be successful: " + this.errors.first().message)
     }
     val assetsNames = this.assets.map { it.name }
     assetsNames shouldEqual assets
