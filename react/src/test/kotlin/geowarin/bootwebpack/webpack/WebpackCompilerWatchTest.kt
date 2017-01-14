@@ -1,10 +1,15 @@
 package geowarin.bootwebpack.webpack
 
+import geowarin.bootwebpack.extensions.path.createFile
+import geowarin.bootwebpack.extensions.path.div
+import geowarin.bootwebpack.extensions.path.writeText
 import geowarin.bootwebpack.utils.source
 import org.amshove.kluent.shouldContain
 import org.junit.Test
 import org.springframework.core.io.ClassPathResource
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
 
 class WebpackCompilerWatchTest {
 
@@ -26,8 +31,8 @@ class WebpackCompilerWatchTest {
 
         val options = WebpackCompilerOptions(
                 bootSsrDirectory = File("/Users/geowarin/dev/projects/boot-wp/react/boot-ssr"),
-                watchDirectories = listOf(rootDir.canonicalPath),
-                pages = listOf(Page(file = tmpPage, name = "page1"))
+                watchDirectories = listOf(rootDir),
+                pages = listOf(Page(path = tmpPage, name = "page1"))
         )
 
         val watchObservable = WebpackCompiler().watchAsync(options)
@@ -42,23 +47,23 @@ class WebpackCompilerWatchTest {
     }
 }
 
-fun File.changeContents(newContentPath: String) {
+fun Path.changeContents(newContentPath: String) {
     // FIXME: one day...
     Thread.sleep(600)
     val contentsFile = ClassPathResource(newContentPath).file
     this.writeText(contentsFile.readText())
 }
 
-fun tmpDir(): File {
-    val tempDir = createTempDir()
-    tempDir.deleteOnExit()
+fun tmpDir(): Path {
+    val tempDir = Files.createTempDirectory("test")
+    tempDir.toFile().deleteOnExit()
     return tempDir
 }
 
-fun createFileInTmpDir(contentPath: String, rootDir: File = tmpDir()): File {
+fun createFileInTmpDir(contentPath: String, rootDir: Path = tmpDir()): Path {
     val sourceFile = ClassPathResource(contentPath).file
-    val createdFile = File(rootDir, sourceFile.name)
-    createdFile.createNewFile()
+    val createdFile = rootDir / sourceFile.name
+    createdFile.createFile()
     createdFile.writeText(sourceFile.readText())
     return createdFile
 }

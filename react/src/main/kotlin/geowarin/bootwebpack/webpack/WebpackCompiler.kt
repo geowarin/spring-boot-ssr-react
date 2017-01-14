@@ -8,30 +8,30 @@ import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
 import java.io.File
+import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 //typealias CompilationListener = (CompilationResult) -> Unit
 
 data class Page(
-        var file: File,
+        var path: Path,
         val name: String
 ) : V8Convertible<Page>(
-        { "file" mappedBy it.file.canonicalPath },
+        { "file" mappedBy it.path.toRealPath().toString() },
         { "name" mappedBy it.name }
 )
 
 data class WebpackCompilerOptions(
         val bootSsrDirectory: File,
         val pages: List<Page>,
-        val watchDirectories: List<String> = listOf()
+        val watchDirectories: List<Path> = listOf()
 ) : V8Convertible<WebpackCompilerOptions>(
         { "pages" mappedBy it.pages },
-        { "watchDirectories" mappedBy it.watchDirectories }
+        { "watchDirectories" mappedBy it.watchDirectories.map { it.toRealPath().toString() } }
 )
 
-// TODO: put bootSsrDirectory in options
-class WebpackCompiler() {
+class WebpackCompiler {
     val listeners: Queue<(CompilationResult) -> Unit> = ConcurrentLinkedQueue()
     lateinit var nodeProcess: NodeProcess
 

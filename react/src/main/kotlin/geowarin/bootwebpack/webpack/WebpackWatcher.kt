@@ -1,7 +1,7 @@
 package geowarin.bootwebpack.webpack
 
 import geowarin.bootwebpack.config.ReactSsrProperties
-import geowarin.bootwebpack.extensions.pathWithoutExt
+import geowarin.bootwebpack.config.WebpackOptionFactory
 import mu.KotlinLogging
 import org.springframework.boot.ApplicationHome
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -25,45 +25,8 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
     }
 
     fun watch(projectDir: File) {
-
-        // TODO: extract this and test
-        // TODO: check if production
-        val jsSourceDir = File(projectDir, properties.jsSourceDirectory)
-        if (!jsSourceDir.exists()) {
-            throw IllegalStateException("Could not find js source directory ${jsSourceDir.canonicalPath}")
-        }
-
-        val bootSsrNodeModulePath: File
-        if (File(properties.bootSsrNodeModulePath).isAbsolute) {
-            bootSsrNodeModulePath = File(properties.bootSsrNodeModulePath)
-        } else {
-            bootSsrNodeModulePath = File(jsSourceDir, properties.bootSsrNodeModulePath)
-        }
-        if (!bootSsrNodeModulePath.exists()) {
-            throw IllegalStateException("Could not find the path to the companion node_module ${bootSsrNodeModulePath.canonicalPath}")
-        }
-
-        val pagesDir = File(jsSourceDir, properties.pageDir)
-        if (!pagesDir.exists()) {
-            logger.warn { "Pages dir does not exist!" }
-        }
-
-        val pagesFile = pagesDir.walk().filter { f -> f.isFile }.toList()
-        val pages = pagesFile.map { Page(name = it.relativeTo(pagesDir).pathWithoutExt(), file = it) }
-
-        logger.info { "Found ${pages.size} react pages" }
-
-        if (pages.isEmpty()) {
-            logger.warn { "No pages where found in ${pagesDir.canonicalPath}. You should add at least one React component in there" }
-        }
-
-        val compiler = WebpackCompiler()
-        val options = WebpackCompilerOptions(
-                bootSsrDirectory = bootSsrNodeModulePath,
-                pages = pages,
-                watchDirectories = listOf(jsSourceDir.canonicalPath)
-        )
-        compiler.watchAsync(options).forEach { res ->
+        val options = WebpackOptionFactory().create(projectDir.toPath(), properties)
+        WebpackCompiler().watchAsync(options).forEach { res ->
             run {
                 // TODO: check errors
                 logger.info { "${res.assets.size} webpack assets compiled in ${res.compileTime}ms" }
