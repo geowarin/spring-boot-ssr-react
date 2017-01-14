@@ -22,6 +22,7 @@ data class Page(
 )
 
 data class WebpackCompilerOptions(
+        val bootSsrDirectory: File,
         val pages: List<Page>,
         val watchDirectories: List<String> = listOf()
 ) : V8Convertible<WebpackCompilerOptions>(
@@ -30,12 +31,12 @@ data class WebpackCompilerOptions(
 )
 
 // TODO: put bootSsrDirectory in options
-class WebpackCompiler(var bootSsrDirectory: File) {
+class WebpackCompiler() {
     val listeners: Queue<(CompilationResult) -> Unit> = ConcurrentLinkedQueue()
     lateinit var nodeProcess: NodeProcess
 
     fun compile(options: WebpackCompilerOptions): CompilationResult {
-        val watchScript = File(bootSsrDirectory, "bin/compileEntry.js")
+        val watchScript = File(options.bootSsrDirectory, "bin/compileEntry.js")
         val nodeProcess = createNodeProcess(watchScript, options)
         nodeProcess.startAsync()
 
@@ -44,7 +45,7 @@ class WebpackCompiler(var bootSsrDirectory: File) {
     }
 
     fun watchAsync(options: WebpackCompilerOptions): Flowable<CompilationResult> {
-        val watchScript = File(bootSsrDirectory, "bin/watchEntry.js")
+        val watchScript = File(options.bootSsrDirectory, "bin/watchEntry.js")
         nodeProcess = createNodeProcess(watchScript, options)
         nodeProcess.startAsync()
 

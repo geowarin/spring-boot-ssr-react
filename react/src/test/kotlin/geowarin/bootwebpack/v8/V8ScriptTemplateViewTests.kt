@@ -1,9 +1,8 @@
 package geowarin.bootwebpack.v8
 
-import geowarin.bootwebpack.utils.createTestCompiler
 import geowarin.bootwebpack.utils.pageOptions
-import geowarin.bootwebpack.v8.V8ScriptTemplateView
 import geowarin.bootwebpack.webpack.AssetStore
+import geowarin.bootwebpack.webpack.WebpackCompiler
 import org.amshove.kluent.shouldEqual
 import org.jsoup.Jsoup
 import org.junit.Test
@@ -37,7 +36,7 @@ class V8ScriptTemplateViewTests {
 
 fun compile(): AssetStore {
 
-    val compiler = createTestCompiler()
+    val compiler = WebpackCompiler()
 
     val compilation = compiler.compile(pageOptions("home.js"))
     if (compilation.hasErrors()) {

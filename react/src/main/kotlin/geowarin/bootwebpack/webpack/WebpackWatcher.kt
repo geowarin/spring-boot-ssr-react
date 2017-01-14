@@ -57,10 +57,9 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
             logger.warn { "No pages where found in ${pagesDir.canonicalPath}. You should add at least one React component in there" }
         }
 
-        val compiler = WebpackCompiler(
-                bootSsrDirectory = bootSsrNodeModulePath
-        )
+        val compiler = WebpackCompiler()
         val options = WebpackCompilerOptions(
+                bootSsrDirectory = bootSsrNodeModulePath,
                 pages = pages,
                 watchDirectories = listOf(jsSourceDir.canonicalPath)
         )

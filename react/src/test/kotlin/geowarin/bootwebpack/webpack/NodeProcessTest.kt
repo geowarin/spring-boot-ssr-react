@@ -1,20 +1,24 @@
 package geowarin.bootwebpack.webpack
 
-import geowarin.bootwebpack.utils.asFile
+import geowarin.bootwebpack.utils.asTmpFile
+import geowarin.bootwebpack.v8.V8Convertible
+import geowarin.bootwebpack.v8.mappedBy
 import org.junit.Test
 import java.io.File
 
 class NodeProcessTest {
 
+    data class Person(val name: String) :
+            V8Convertible<Person>({ "name" mappedBy it.name })
+
     @Test
     fun shouldAddV8ConvertibleToRuntime() {
-        val page = Page(File("/Users/geowarin"), "geowarin")
-        val options = WebpackCompilerOptions(listOf(page))
+        val person = Person(name = "Edward")
 
-        val script = """ console.assert(options.pages[0].name == 'geowarin') """.asFile()
+        val script = """ console.assert(person.name == 'Edward') """.asTmpFile()
         val nodeProcess = NodeProcess(script)
 
-        nodeProcess.addObj("options", options)
+        nodeProcess.addObj("person", person)
         nodeProcess.startSync()
     }
 }
