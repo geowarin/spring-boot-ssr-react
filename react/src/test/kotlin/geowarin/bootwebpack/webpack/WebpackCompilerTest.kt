@@ -11,7 +11,7 @@ class WebpackCompilerTest {
     fun compilation_succeeds() {
         val compilation = WebpackCompiler().compile(pageOptions("home.js"))
 
-        compilation shouldContainAssets listOf("client.js", "renderer.js", "home.js", "common.js")
+        compilation shouldContainAssets listOf("client.js", "common.js", "home.js", "renderer.js")
         assert(compilation.compileTime > 0, { -> "Should have a compile time" })
     }
 

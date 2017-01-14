@@ -7,7 +7,8 @@ const webpack = require('webpack');
 const MemoryFileSystem = require('memory-fs');
 const SaneWatcherPlugin = require('./watcher/SaneWatcherPlugin');
 
-const wp = require('@webpack-blocks/core');
+const core = require('@webpack-blocks/core');
+const wp = require('@webpack-blocks/webpack-common');
 const babel = require('@webpack-blocks/babel6');
 
 function resolveLoaders(modules) {
@@ -18,17 +19,6 @@ function resolveLoaders(modules) {
       ]
     }
   });
-}
-
-const entryPoint = (entry) => () => ({entry: entry});
-const output = (output) => () => ({output: output});
-
-function plugins (plugins) {
-  if (plugins.length > 0) {
-    return () => ({ plugins });
-  } else {
-    return () => ({});
-  }
 }
 
 const babelPresets = [
@@ -51,9 +41,22 @@ const babelPlugins = [
   ]
 ];
 
-const config = (entries, rootDir, watchDirectories) => wp.createConfig(webpack, [
-  entryPoint(entries),
-  output({
+let uglifyJs = function () {
+  return new webpack.optimize.UglifyJsPlugin({
+    compress: {
+      warnings: false
+    },
+    output: {
+      comments: false
+    },
+    screwIe8: true,
+    sourceMap: false
+  });
+};
+
+const config = (entries, rootDir, options) => core.createConfig(webpack, [
+  wp.entryPoint(entries),
+  wp.setOutput({
     path: path.join(__dirname, 'dist'),
     filename: '[name].js'
   }),
@@ -61,11 +64,22 @@ const config = (entries, rootDir, watchDirectories) => wp.createConfig(webpack, 
     presets: babelPresets,
     plugins: babelPlugins
   }),
-  plugins([
-    new webpack.optimize.CommonsChunkPlugin({ name: 'common'}),
-    new SaneWatcherPlugin({watchDirectories: watchDirectories})
+  wp.addPlugins([
+    new webpack.optimize.CommonsChunkPlugin({name: 'common'}),
+    new SaneWatcherPlugin({watchDirectories: options.watchDirectories})
   ]),
   resolveLoaders(path.join(rootDir, 'node_modules')),
+  wp.defineConstants({
+    'process.env.NODE_ENV': process.env.NODE_ENV
+  }),
+  core.env('development', [
+    wp.sourceMaps()
+  ]),
+  core.env('production', [
+    wp.addPlugins([
+      uglifyJs()
+    ])
+  ])
 ]);
 
 
@@ -82,7 +96,7 @@ function createCompiler(bootSsrModuleDir, options) {
   const entries = getPagesEntry(options.pages);
   entries['client'] = path.join(bootSsrModuleDir, "src/client/client.js");
   entries['renderer'] = path.join(bootSsrModuleDir, "src/server/renderer.js");
-  let compiler = webpack(config(entries, bootSsrModuleDir, options.watchDirectories));
+  let compiler = webpack(config(entries, bootSsrModuleDir, options));
   compiler.outputFileSystem = new MemoryFileSystem();
   return compiler;
 }

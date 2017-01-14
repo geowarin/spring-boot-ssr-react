@@ -28,11 +28,14 @@ infix fun CompilationResult.shouldContainAssets(assets: Iterable<String>?) {
     if (this.hasErrors()) {
         throw AssertionError("Compilation should be successful: " + this.errors.first().message)
     }
-    val assetsNames = this.assets.map { it.name }
+    val assetsNames = this.assets.map { it.name }.sorted()
     assetsNames shouldEqual assets
 }
 
 fun CompilationResult.source(assetName: String): String {
+    if (this.hasErrors()) {
+        throw AssertionError("Compilation should be successful: " + this.errors.first().message)
+    }
     val asset = this.assets.find { it.name == assetName }
     return asset?.source ?: throw IllegalStateException("Could not find asset ${assetName}")
 }

@@ -119,9 +119,11 @@ fun Path.copy(outputStream: OutputStream) = Files.copy(this, outputStream)
  *
  * See [Files.move] for complete documentation.
  */
-fun Path.move(target: Path, vararg options: StandardCopyOption): Path {
-    return Files.move(this, target, *options)
-}
+fun Path.move(target: Path, vararg options: StandardCopyOption): Path = Files.move(this, target, *options)
+
+fun Path.delete(): Boolean = Files.deleteIfExists(this)
+
+fun Path.deleteRecursively(): Boolean = walkBottomUp().fold(true, { res, it -> (it.delete() || !it.exists) && res })
 
 fun Path.createDirectory(vararg attrs: FileAttribute<*>) = Files.createDirectory(this, *attrs)
 
