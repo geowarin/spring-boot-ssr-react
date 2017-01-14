@@ -40,7 +40,9 @@ class WebpackOptionFactory {
         return pages
     }
 
-    private fun relativize(page: Path, pagesDir: Path) = pagesDir.relativize(page).fileNameWithoutExtension
+    private fun relativize(page: Path, pagesDir: Path) = withoutExt(pagesDir.relativize(page))
+
+    private fun withoutExt(path: Path) = path.toString().replaceAfterLast(".", "").dropLast(1)
 
     fun checkPagesDirectory(pagesDirPath: Path): Path {
         if (!pagesDirPath.exists) {
