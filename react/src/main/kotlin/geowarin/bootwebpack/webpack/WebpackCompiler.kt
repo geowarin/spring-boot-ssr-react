@@ -7,12 +7,19 @@ import geowarin.bootwebpack.v8.mappedBy
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
+import org.springframework.util.ReflectionUtils
 import java.io.File
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
-//typealias CompilationListener = (CompilationResult) -> Unit
+typealias CompilationListener = (CompilationResult) -> Unit
+typealias ErrorListener = (Error) -> Unit
+
+data class WebpackListener(
+        val compilationListener: CompilationListener,
+        val errorListener: ErrorListener
+)
 
 data class Page(
         var path: Path,
@@ -32,7 +39,7 @@ data class WebpackCompilerOptions(
 )
 
 class WebpackCompiler {
-    val listeners: Queue<(CompilationResult) -> Unit> = ConcurrentLinkedQueue()
+    val listeners: Queue<WebpackListener> = ConcurrentLinkedQueue()
     lateinit var nodeProcess: NodeProcess
 
     fun compile(options: WebpackCompilerOptions): CompilationResult {
@@ -54,13 +61,20 @@ class WebpackCompiler {
 
     private fun createObservable(backpressureStrategy: BackpressureStrategy): Flowable<CompilationResult> {
         return Flowable.create({ emitter: FlowableEmitter<CompilationResult> ->
-            val listener: (CompilationResult) -> Unit = { comp -> emitter.onNext(comp) }
+            val compilationListener = { comp:CompilationResult -> emitter.onNext(comp) }
+
+            val errorListener = { error: Error ->
+                val exception = Exception(error.message + "\n" + error.stack)
+                emitter.onError(exception)
+            }
+            val listener = WebpackListener(compilationListener, errorListener)
+
             emitter.setCancellable { -> listeners.remove(listener) }
             listeners.add(listener)
         }, backpressureStrategy)
     }
 
-    fun stop() {
+    fun stop(error: Error) {
         nodeProcess.stop()
     }
 
@@ -70,7 +84,10 @@ class WebpackCompiler {
 
         nodeProcess.registerJavaMethod("errorCallback") { args ->
             val error = Error.create(exception = args[0] as V8Object)
-            throw Exception(error.message)
+            nodeProcess.stop()
+            for (listener in listeners) {
+                listener.errorListener.invoke(error)
+            }
         }
 
         nodeProcess.registerJavaMethod("compilationCallback") { args ->
@@ -82,22 +99,30 @@ class WebpackCompiler {
             )
 
             for (listener in listeners) {
-                listener.invoke(compilation)
+                listener.compilationListener.invoke(compilation)
             }
         }
         return nodeProcess
     }
 }
 
-data class Error(val message: String) {
+data class Error(val message: String, val stack: String) {
     companion object Factory {
-        fun create(exception: V8Object): Error = Error(exception.getString("message"))
+        fun create(exception: V8Object): Error {
+            val error = Error(exception.getString("message"), exception.getString("stack"))
+            exception.release()
+            return error
+        }
     }
 }
 
 data class Warning(val message: String) {
     companion object Factory {
-        fun create(exception: V8Object): Warning = Warning(exception.getString("message"))
+        fun create(warningObj: V8Object): Warning {
+            val warning = Warning(warningObj.getString("message"))
+            warningObj.release()
+            return warning
+        }
     }
 }
 

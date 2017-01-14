@@ -1,14 +1,17 @@
 package geowarin.bootwebpack.webpack
 
-import com.eclipsesource.v8.*
+import com.eclipsesource.v8.NodeJS
+import com.eclipsesource.v8.V8
+import com.eclipsesource.v8.V8Array
+import com.eclipsesource.v8.V8Object
 import com.eclipsesource.v8.utils.V8ObjectUtils
 import geowarin.bootwebpack.v8.V8Convertible
 import java.io.Closeable
 import java.io.File
 import kotlin.concurrent.thread
 
-data class NamedObject(val name:String, val value: V8Convertible<*>)
-data class NamedMethod(val name:String, val method:(V8Array) -> Unit)
+data class NamedObject(val name: String, val value: V8Convertible<*>)
+data class NamedMethod(val name: String, val method: (V8Array) -> Unit)
 
 class NodeProcess(val scriptFile: File) : Closeable {
     var shouldRun = false
@@ -30,7 +33,7 @@ class NodeProcess(val scriptFile: File) : Closeable {
         }
 
         methods.forEach { entry ->
-            runtime.registerJavaMethod({ obj: V8Object, args: V8Array ->
+            runtime.registerJavaMethod({ _: V8Object, args: V8Array ->
                 entry.method(args)
             }, entry.name)
         }

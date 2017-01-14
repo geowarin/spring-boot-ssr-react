@@ -6,6 +6,7 @@ infix fun <A, B : Iterable<V8Convertible<*>>> A.mappedBy(that: B): Pair<A, Any> 
 
 abstract class V8Convertible<T>(vararg val props: (T) -> Pair<String, Any?>) {
 
+    // FIXME: reify ? https://kotlinlang.org/docs/reference/inline-functions.html#reified-type-parameters
     @Suppress("UNCHECKED_CAST")
     fun getThis(): T {
         return this as T
