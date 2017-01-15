@@ -10,8 +10,6 @@ class WebpackOptionFactory {
     private val logger = KotlinLogging.logger {}
 
     fun create(projectDir: Path, properties: ReactSsrProperties): WebpackCompilerOptions {
-        // TODO: check if production
-
         val jsSourceDir = checkJsSourceDir(projectDir / properties.jsSourceDirectory)
         val bootSsrNodeModulePath = checkNodeModulePath(jsSourceDir, properties.bootSsrNodeModulePath.toPath())
 

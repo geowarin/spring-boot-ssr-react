@@ -36,6 +36,7 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
     }
 
     fun getProjectDir(mainApplicationClass: Class<*>): File {
+        // TODO: simplify this
         val dir = ApplicationHome(mainApplicationClass).dir
         if (dir.toPath().endsWith("target/classes")) {
             // maven

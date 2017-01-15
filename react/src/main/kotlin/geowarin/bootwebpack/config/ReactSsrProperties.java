@@ -22,6 +22,21 @@ public class ReactSsrProperties {
      */
     private String pageDir = "pages";
 
+    /**
+     * Does this server runs in production or in development mode?
+     * By default, we try to detect if the webpack compiled resources
+     * are present on the classpath, in this case, we can assume a production
+     * environment.
+     * Otherwise, we are in development.
+     */
+    private RunMode mode = RunMode.auto;
+
+    /**
+     * When compiled statically, the webpack assets will end up in this
+     * directory, in the production jar.
+     */
+    private String webpackAssetsLocation = "webpack_assets";
+
     public String getBootSsrNodeModulePath() {
         return bootSsrNodeModulePath;
     }
@@ -44,5 +59,21 @@ public class ReactSsrProperties {
 
     public void setPageDir(String pageDir) {
         this.pageDir = pageDir;
+    }
+
+    public RunMode getMode() {
+        return mode;
+    }
+
+    public void setMode(RunMode mode) {
+        this.mode = mode;
+    }
+
+    public String getWebpackAssetsLocation() {
+        return webpackAssetsLocation;
+    }
+
+    public void setWebpackAssetsLocation(String webpackAssetsLocation) {
+        this.webpackAssetsLocation = webpackAssetsLocation;
     }
 }

@@ -15,6 +15,7 @@ import java.nio.file.Path
 fun pageOptions(vararg pagePaths: String): WebpackCompilerOptions {
     val pages = pagePaths.map { ClassPathResource(it).file.toPath() }
     return WebpackCompilerOptions(
+            // FIXME: hardcoded
             bootSsrDirectory = File("/Users/geowarin/dev/projects/boot-wp/react/boot-ssr"),
             pages = toPages(*pages.toTypedArray())
     )

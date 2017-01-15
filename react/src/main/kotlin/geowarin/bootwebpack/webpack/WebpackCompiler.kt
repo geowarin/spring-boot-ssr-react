@@ -64,7 +64,7 @@ class WebpackCompiler {
             val compilationListener = { comp:CompilationResult -> emitter.onNext(comp) }
 
             val errorListener = { error: Error ->
-                val exception = Exception(error.message + "\n" + error.stack)
+                val exception = Exception(error.toString())
                 emitter.onError(exception)
             }
             val listener = WebpackListener(compilationListener, errorListener)
@@ -114,6 +114,10 @@ data class Error(val message: String, val stack: String) {
             return error
         }
     }
+
+    override fun toString(): String {
+        return "$message\n$stack"
+    }
 }
 
 data class Warning(val message: String) {
@@ -123,6 +127,10 @@ data class Warning(val message: String) {
             warningObj.release()
             return warning
         }
+    }
+
+    override fun toString(): String {
+        return "$message"
     }
 }
 

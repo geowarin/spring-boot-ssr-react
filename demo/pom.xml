@@ -70,6 +70,7 @@
                     <mainClass>geowarin.bootwebpack.CompilationMainKt</mainClass>
                     <arguments>
                         <argument>${project.basedir}</argument>
+                        <argument>${project.build.outputDirectory}</argument>
                     </arguments>
                 </configuration>
             </plugin>

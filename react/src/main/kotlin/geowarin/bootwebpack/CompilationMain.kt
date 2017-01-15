@@ -20,19 +20,30 @@ open class TestConfig {
 
     @Bean
     open fun runner(properties: ReactSsrProperties): CommandLineRunner = CommandLineRunner { args ->
-        if (args.isEmpty()) {
-            throw IllegalArgumentException("Error")
+        if (args.size < 2) {
+            throw IllegalArgumentException("""The webpack compiler main requires 2 arguments:
+- the project base dir (${'$'}{project.basedir} when running from maven)
+- the assets destination in your jar (${'$'}{project.build.outputDirectory} when running from maven)
+""")
         }
 
         val projectDir = args[0].toPath()
-        logger.info { "Compiling $projectDir" }
+        val distDir = args[1].toPath() / properties.webpackAssetsLocation
+
+        logger.info { "Compiling webpack assets of '$projectDir' to $distDir" }
         val webpackCompilerOptions = WebpackOptionFactory().create(projectDir, properties)
         val compilationResult = WebpackCompiler().compile(webpackCompilerOptions)
 
-        val distDir = projectDir / "target/classes/dist"
-        distDir.deleteRecursively()
+        if (compilationResult.hasErrors()) {
+            throw Error("Webpack build encountered errors: " + compilationResult.errors.first().toString())
+        }
+
+        compilationResult.warnings.forEach { warning ->
+            logger.warn { "webpack: ${warning.message}" }
+        }
+
         compilationResult.assets.forEach { asset ->
-            val destination = distDir / (asset.name + ".js")
+            val destination = distDir / asset.name
             logger.info { "Writing $destination" }
             destination.parent.createDirectories()
             destination.writeText(asset.source)

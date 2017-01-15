@@ -1,5 +1,6 @@
 package geowarin.bootwebpack.template
 
+import geowarin.bootwebpack.extensions.resource.readText
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.springframework.core.io.Resource
@@ -25,7 +26,7 @@ class SimpleTemplate(html: String = defaultHtml) {
 
     companion object Factory {
         fun fromResource(resource: Resource): SimpleTemplate {
-            return SimpleTemplate(resource.file.readText())
+            return SimpleTemplate(resource.readText())
         }
     }
 

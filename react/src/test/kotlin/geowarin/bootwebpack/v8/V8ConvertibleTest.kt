@@ -1,6 +1,9 @@
 package geowarin.bootwebpack.v8
 
-import org.amshove.kluent.*
+import org.amshove.kluent.shouldBeInstanceOf
+import org.amshove.kluent.shouldContain
+import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldHaveKey
 import org.junit.Assert.fail
 import org.junit.Test
 
