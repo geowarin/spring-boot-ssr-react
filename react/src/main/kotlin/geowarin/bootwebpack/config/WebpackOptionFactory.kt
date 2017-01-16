@@ -19,7 +19,7 @@ class WebpackOptionFactory {
         val pages = getPages(pagesDir)
 
         return WebpackCompilerOptions(
-                bootSsrDirectory = bootSsrNodeModulePath.toFile(),
+                bootSsrDirectory = bootSsrNodeModulePath,
                 pages = pages,
                 watchDirectories = listOf(jsSourceDir)
         )

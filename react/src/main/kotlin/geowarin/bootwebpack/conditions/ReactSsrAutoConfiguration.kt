@@ -52,9 +52,9 @@ class OnProdCondition : SpringBootCondition(), ConfigurationCondition {
         // try to autodetect
         val requiredResourceFound = requiredResources.map { ClassPathResource("/$assetsLocation/$it") }.all { it.exists() }
         if (requiredResourceFound) {
-            return ConditionOutcome.match(message.found("resources").items(requiredResources))
+            return ConditionOutcome(requiresProd, message.found("resources").items(requiredResources))
         }
-        return ConditionOutcome.noMatch(message.didNotFind("resources").items(requiredResources))
+        return ConditionOutcome(!requiresProd, message.didNotFind("resources").items(requiredResources))
     }
 
 }

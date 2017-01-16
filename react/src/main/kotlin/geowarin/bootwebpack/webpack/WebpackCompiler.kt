@@ -2,12 +2,12 @@ package geowarin.bootwebpack.webpack
 
 import com.eclipsesource.v8.V8Array
 import com.eclipsesource.v8.V8Object
+import geowarin.bootwebpack.extensions.path.div
 import geowarin.bootwebpack.v8.V8Convertible
 import geowarin.bootwebpack.v8.mappedBy
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
-import org.springframework.util.ReflectionUtils
 import java.io.File
 import java.nio.file.Path
 import java.util.*
@@ -30,7 +30,7 @@ data class Page(
 )
 
 data class WebpackCompilerOptions(
-        val bootSsrDirectory: File,
+        val bootSsrDirectory: Path,
         val pages: List<Page>,
         val watchDirectories: List<Path> = listOf()
 ) : V8Convertible<WebpackCompilerOptions>(
@@ -43,8 +43,8 @@ class WebpackCompiler {
     lateinit var nodeProcess: NodeProcess
 
     fun compile(options: WebpackCompilerOptions): CompilationResult {
-        val watchScript = File(options.bootSsrDirectory, "bin/compileEntry.js")
-        val nodeProcess = createNodeProcess(watchScript, options)
+        val watchScript = options.bootSsrDirectory / "bin/compileEntry.js"
+        val nodeProcess = createNodeProcess(watchScript.toFile(), options)
         nodeProcess.startAsync()
 
         val observable = createObservable(BackpressureStrategy.DROP)
@@ -52,8 +52,8 @@ class WebpackCompiler {
     }
 
     fun watchAsync(options: WebpackCompilerOptions): Flowable<CompilationResult> {
-        val watchScript = File(options.bootSsrDirectory, "bin/watchEntry.js")
-        nodeProcess = createNodeProcess(watchScript, options)
+        val watchScript = options.bootSsrDirectory / "bin/watchEntry.js"
+        nodeProcess = createNodeProcess(watchScript.toFile(), options)
         nodeProcess.startAsync()
 
         return createObservable(BackpressureStrategy.BUFFER)
@@ -61,7 +61,7 @@ class WebpackCompiler {
 
     private fun createObservable(backpressureStrategy: BackpressureStrategy): Flowable<CompilationResult> {
         return Flowable.create({ emitter: FlowableEmitter<CompilationResult> ->
-            val compilationListener = { comp:CompilationResult -> emitter.onNext(comp) }
+            val compilationListener = { comp: CompilationResult -> emitter.onNext(comp) }
 
             val errorListener = { error: Error ->
                 val exception = Exception(error.toString())

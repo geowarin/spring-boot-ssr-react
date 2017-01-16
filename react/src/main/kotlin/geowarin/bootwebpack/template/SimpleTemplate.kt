@@ -45,7 +45,7 @@ class SimpleTemplate(html: String = defaultHtml) {
         return this
     }
 
-    fun replaceNodeContent(selector:String, content:String): SimpleTemplate {
+    fun replaceNodeContent(selector: String, content: String): SimpleTemplate {
         document.select(selector).html(content)
         return this
     }

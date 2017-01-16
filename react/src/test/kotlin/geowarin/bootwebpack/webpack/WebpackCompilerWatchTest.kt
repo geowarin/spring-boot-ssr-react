@@ -2,6 +2,7 @@ package geowarin.bootwebpack.webpack
 
 import geowarin.bootwebpack.extensions.path.createFile
 import geowarin.bootwebpack.extensions.path.div
+import geowarin.bootwebpack.extensions.path.toPath
 import geowarin.bootwebpack.extensions.path.writeText
 import geowarin.bootwebpack.utils.source
 import org.amshove.kluent.shouldContain
@@ -31,7 +32,7 @@ class WebpackCompilerWatchTest {
 
         val options = WebpackCompilerOptions(
                 // FIXME: hardcoded
-                bootSsrDirectory = File("/Users/geowarin/dev/projects/boot-wp/react/boot-ssr"),
+                bootSsrDirectory = "/Users/geowarin/dev/projects/boot-wp/react/boot-ssr".toPath(),
                 watchDirectories = listOf(rootDir),
                 pages = listOf(Page(path = tmpPage, name = "page1"))
         )

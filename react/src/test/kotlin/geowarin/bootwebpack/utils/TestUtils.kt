@@ -1,6 +1,7 @@
 package geowarin.bootwebpack.utils
 
 import geowarin.bootwebpack.extensions.path.fileNameWithoutExtension
+import geowarin.bootwebpack.extensions.path.toPath
 import geowarin.bootwebpack.webpack.CompilationResult
 import geowarin.bootwebpack.webpack.Page
 import geowarin.bootwebpack.webpack.WebpackCompilerOptions
@@ -16,7 +17,7 @@ fun pageOptions(vararg pagePaths: String): WebpackCompilerOptions {
     val pages = pagePaths.map { ClassPathResource(it).file.toPath() }
     return WebpackCompilerOptions(
             // FIXME: hardcoded
-            bootSsrDirectory = File("/Users/geowarin/dev/projects/boot-wp/react/boot-ssr"),
+            bootSsrDirectory = "/Users/geowarin/dev/projects/boot-wp/react/boot-ssr".toPath(),
             pages = toPages(*pages.toTypedArray())
     )
 }

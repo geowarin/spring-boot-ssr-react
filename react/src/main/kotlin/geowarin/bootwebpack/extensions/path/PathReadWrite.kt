@@ -22,6 +22,7 @@ fun Path.bufferedReader(charset: Charset = StandardCharsets.UTF_8): BufferedRead
  */
 fun Path.bufferedWriter(charset: Charset = StandardCharsets.UTF_8, vararg options: OpenOption): BufferedWriter =
         Files.newBufferedWriter(this, charset, *options)
+
 /**
  * Returns a new [PrintWriter] for writing the content of this file.
  */

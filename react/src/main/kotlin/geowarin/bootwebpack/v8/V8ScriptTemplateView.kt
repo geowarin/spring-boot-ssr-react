@@ -54,7 +54,7 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
 
         } catch (e: V8ScriptException) {
 
-            log.error { "Error while rendering the page $url:\n ${e.message}\n ${e.jsStackTrace}"}
+            log.error { "Error while rendering the page $url:\n ${e.message}\n ${e.jsStackTrace}" }
             val errorTemplate = error(e)
             response.writer.write(errorTemplate)
 
