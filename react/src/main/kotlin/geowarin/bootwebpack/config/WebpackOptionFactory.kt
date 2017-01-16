@@ -6,10 +6,17 @@ import geowarin.bootwebpack.webpack.WebpackCompilerOptions
 import mu.KotlinLogging
 import java.nio.file.Path
 
+data class BootSsrOptions(
+        val webpackCompilerOptions: WebpackCompilerOptions,
+        val additionalBuildInfo: AdditionalBuildInfo
+)
+
+data class AdditionalBuildInfo(val pagesDir: Path)
+
 class WebpackOptionFactory {
     private val logger = KotlinLogging.logger {}
 
-    fun create(projectDir: Path, properties: ReactSsrProperties): WebpackCompilerOptions {
+    fun create(projectDir: Path, properties: ReactSsrProperties): BootSsrOptions {
         val jsSourceDir = checkJsSourceDir(projectDir / properties.jsSourceDirectory)
         val bootSsrNodeModulePath = checkNodeModulePath(jsSourceDir, properties.bootSsrNodeModulePath.toPath())
 
@@ -18,11 +25,15 @@ class WebpackOptionFactory {
 
         val pages = getPages(pagesDir)
 
-        return WebpackCompilerOptions(
+        val webpackCompilerOptions = WebpackCompilerOptions(
                 bootSsrDirectory = bootSsrNodeModulePath,
                 pages = pages,
                 watchDirectories = listOf(jsSourceDir)
         )
+        val additionalBuildInfo = AdditionalBuildInfo(
+                pagesDir = pagesDir
+        )
+        return BootSsrOptions(webpackCompilerOptions, additionalBuildInfo)
     }
 
     fun getPages(pagesDir: Path): List<Page> {

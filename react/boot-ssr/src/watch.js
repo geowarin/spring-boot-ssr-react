@@ -28,6 +28,10 @@ function watch(options, errorCallback, compilationCallback) {
       );
     }
   });
+
+  // OMG HAX. This wakes up the event loop so we don't get stuck
+  // on the java side and get a chance to kill the process properly
+  setInterval(() => { }, 1000)
 }
 
 module.exports = watch;

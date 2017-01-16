@@ -33,8 +33,8 @@ class WebpackCompilerWatchTest {
         val options = WebpackCompilerOptions(
                 // FIXME: hardcoded
                 bootSsrDirectory = "/Users/geowarin/dev/projects/boot-wp/react/boot-ssr".toPath(),
-                watchDirectories = listOf(rootDir),
-                pages = listOf(Page(path = tmpPage, name = "page1"))
+                pages = listOf(Page(path = tmpPage, name = "page1")),
+                watchDirectories = listOf(rootDir)
         )
 
         val watchObservable = WebpackCompiler().watchAsync(options)

@@ -14,17 +14,18 @@ data class NamedObject(val name: String, val value: V8Convertible<*>)
 data class NamedMethod(val name: String, val method: (V8Array) -> Unit)
 
 class NodeProcess(val scriptFile: File) : Closeable {
-    var shouldRun = false
+    var shouldRun = true
     var objects: MutableList<NamedObject> = mutableListOf()
     var methods: MutableList<NamedMethod> = mutableListOf()
+    var thread: Thread? = null
 
     fun startAsync() {
-        thread {
-            startSync()
+        thread = thread {
+            start()
         }
     }
 
-    fun startSync() {
+    fun start() {
         val nodeJS = NodeJS.createNodeJS()
 
         val runtime = nodeJS.runtime
@@ -38,7 +39,6 @@ class NodeProcess(val scriptFile: File) : Closeable {
             }, entry.name)
         }
 
-        shouldRun = true
         nodeJS.exec(scriptFile)
         while (nodeJS.isRunning && shouldRun) {
             nodeJS.handleMessage()
@@ -54,6 +54,7 @@ class NodeProcess(val scriptFile: File) : Closeable {
 
     fun stop() {
         shouldRun = false
+        thread?.join()
     }
 
     fun registerJavaMethod(name: String, method: (V8Array) -> Unit) {

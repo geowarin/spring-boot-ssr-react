@@ -17,7 +17,7 @@ import org.springframework.context.support.GenericApplicationContext
 
 @Configuration
 @EnableConfigurationProperties(ReactSsrProperties::class)
-open class TestConfig {
+open class CompilationConfig {
 
     private val logger = KotlinLogging.logger {}
 
@@ -34,8 +34,8 @@ open class TestConfig {
         val distDir = args[1].toPath() / properties.webpackAssetsLocation
 
         logger.info { "Compiling webpack assets of '$projectDir' to $distDir" }
-        val webpackCompilerOptions = WebpackOptionFactory().create(projectDir, properties)
-        val compilationResult = WebpackCompiler().compile(webpackCompilerOptions)
+        val options = WebpackOptionFactory().create(projectDir, properties)
+        val compilationResult = WebpackCompiler().compile(options.webpackCompilerOptions)
 
         if (compilationResult.hasErrors()) {
             throw Error("Webpack build encountered errors: " + compilationResult.errors.first().toString())
@@ -55,7 +55,7 @@ open class TestConfig {
 }
 
 fun main(args: Array<String>) {
-    val springApplication = SpringApplication(TestConfig::class.java)
+    val springApplication = SpringApplication(CompilationConfig::class.java)
     springApplication.setApplicationContextClass(GenericApplicationContext::class.java)
     springApplication.run(*args)
 }

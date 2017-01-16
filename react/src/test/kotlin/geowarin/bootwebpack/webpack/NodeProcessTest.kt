@@ -19,6 +19,6 @@ class NodeProcessTest {
         val nodeProcess = NodeProcess(script)
 
         nodeProcess.addObj("person", person)
-        nodeProcess.startSync()
+        nodeProcess.start()
     }
 }

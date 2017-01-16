@@ -9,10 +9,10 @@ class SimpleTemplateTest {
     @Test
     fun shouldInsertScriptTag() {
         val simpleTemplate = SimpleTemplate()
-        simpleTemplate.insertScriptTag("toto.js")
+        simpleTemplate.insertScriptTag("myScript.js")
 
         val html = simpleTemplate.toString()
-        html shouldContain """<script type="text/javascript" src="toto.js"></script>"""
+        html shouldContain """<script type="text/javascript" src="myScript.js"></script>"""
     }
 
     @Test

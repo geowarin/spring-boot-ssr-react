@@ -28,14 +28,14 @@ class V8ConvertibleTest {
 
     @Test
     fun shouldConvertIterableToMap() {
-        val mapResult = CollectionContainer(objs = listOf(SimpleObject("toto"))).toMap()
+        val mapResult = CollectionContainer(objs = listOf(SimpleObject("dagobert"))).toMap()
 
         mapResult shouldBeInstanceOf Map::class.java
         mapResult shouldHaveKey "objs"
         val objs = mapResult["objs"]
         if (objs is Iterable<*>) {
             objs.first() shouldBeInstanceOf Map::class.java
-            (objs.first() as Map<String, *>)["name"] shouldEqual "toto"
+            (objs.first() as Map<String, *>)["name"] shouldEqual "dagobert"
         } else {
             fail("should be an iterable")
         }
