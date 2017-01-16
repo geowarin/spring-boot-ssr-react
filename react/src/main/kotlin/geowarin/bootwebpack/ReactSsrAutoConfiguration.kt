@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.web.ResourceProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.devtools.restart.RestartScope
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
@@ -54,6 +55,7 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
 
     @Bean
     @ConditionalOnDevelopmentMode
+    @RestartScope
     open fun webpackWatcher(properties: ReactSsrProperties): WebpackWatcher {
         return WebpackWatcher(assetStore(), properties)
     }

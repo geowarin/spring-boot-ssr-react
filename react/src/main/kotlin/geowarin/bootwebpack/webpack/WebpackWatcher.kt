@@ -1,12 +1,9 @@
 package geowarin.bootwebpack.webpack
 
-import geowarin.bootwebpack.config.BootSsrOptions
 import geowarin.bootwebpack.config.ReactSsrProperties
 import geowarin.bootwebpack.config.WebpackOptionFactory
 import geowarin.bootwebpack.files.WatchEventObservable
 import geowarin.bootwebpack.files.watchService
-import io.reactivex.Flowable
-import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import mu.KotlinLogging
@@ -14,7 +11,6 @@ import org.springframework.boot.ApplicationHome
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationListener
 import java.io.File
-
 
 open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrProperties) : ApplicationListener<ApplicationReadyEvent> {
     private val logger = KotlinLogging.logger {}
@@ -39,7 +35,7 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
         val pagesDir = options.additionalBuildInfo.pagesDir
 
         val webpackCompiler = WebpackCompiler()
-        var subscription:Disposable? = null
+        var subscription: Disposable? = null
 
         WatchEventObservable
                 .createSimple(pagesDir.watchService())
