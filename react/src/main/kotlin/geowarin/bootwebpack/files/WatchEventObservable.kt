@@ -7,7 +7,6 @@ import io.reactivex.FlowableEmitter
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
-import java.nio.file.WatchEvent
 import java.nio.file.WatchService
 
 internal enum class Nothing {
@@ -18,22 +17,14 @@ class WatchEventObservable {
 
     companion object Factory {
 
-        fun create(watchService: WatchService): Flowable<WatchEvent<*>> {
-            return Flowable.create({ emitter: FlowableEmitter<WatchEvent<*>> ->
-                while (!emitter.isCancelled) {
-                    val key = watchService.poll()
-                    if (key != null) {
-                        key.pollEvents().forEach { event ->
-                            emitter.onNext(event)
-                        }
-                        key.reset()
-                    }
-                }
-//                emitter.setCancellable { }
-            }, BackpressureStrategy.BUFFER)
-        }
+        /**
+         * Returns an observable which will react to each addition/deletion in a directory.
+         * Aggregated changes (during a 2 second poll-period) will be merged.
+         * File paths are not sent.
+         */
+        fun addAndDeleteWatcher(path: Path): Flowable<Any> {
 
-        fun createSimple(watchService: WatchService): Flowable<Any> {
+            val watchService = path.watchService()
             return Flowable.create({ emitter: FlowableEmitter<Any> ->
                 while (!emitter.isCancelled) {
                     val key = watchService.poll()

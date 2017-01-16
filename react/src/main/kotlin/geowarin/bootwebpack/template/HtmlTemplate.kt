@@ -17,7 +17,10 @@ val defaultHtml: String = """
 </html>
 """
 
-class SimpleTemplate(html: String = defaultHtml) {
+/**
+ * Allows html manipulations via Jsoup
+ */
+class HtmlTemplate(html: String = defaultHtml) {
     internal var document: Document
 
     init {
@@ -25,32 +28,32 @@ class SimpleTemplate(html: String = defaultHtml) {
     }
 
     companion object Factory {
-        fun fromResource(resource: Resource): SimpleTemplate {
-            return SimpleTemplate(resource.readText())
+        fun fromResource(resource: Resource): HtmlTemplate {
+            return HtmlTemplate(resource.readText())
         }
     }
 
-    fun setTitle(title: String): SimpleTemplate {
+    fun setTitle(title: String): HtmlTemplate {
         document.title(title)
         return this
     }
 
-    fun insertScriptTag(scriptUrl: String): SimpleTemplate {
+    fun insertScriptTag(scriptUrl: String): HtmlTemplate {
         document.body().appendElement("script").attr("type", "text/javascript").attr("src", scriptUrl)
         return this
     }
 
-    fun insertScript(scriptText: String): SimpleTemplate {
+    fun insertScript(scriptText: String): HtmlTemplate {
         document.body().appendElement("script").attr("type", "text/javascript").text(scriptText)
         return this
     }
 
-    fun replaceNodeContent(selector: String, content: String): SimpleTemplate {
+    fun replaceNodeContent(selector: String, content: String): HtmlTemplate {
         document.select(selector).html(content)
         return this
     }
 
-    fun template(vararg values: Pair<String, String>): SimpleTemplate {
+    fun template(vararg values: Pair<String, String>): HtmlTemplate {
         var html = document.html()
         values.forEach {
             html = html.replace("{${it.first}}", HtmlUtils.htmlEscape(it.second))

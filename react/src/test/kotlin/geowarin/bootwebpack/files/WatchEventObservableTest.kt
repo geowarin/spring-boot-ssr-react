@@ -21,32 +21,14 @@ class WatchEventObservableTest {
     }
 
     @Test
-    fun testWatchObservableShouldReceiveCreateEvents() {
-
-        val pagesDir = rule.createPath("pageDir")
-
-        val watcher = pagesDir.watchService()
-        val observable = WatchEventObservable.create(watcher)
-
-        rule.createPath("pageDir/page1.js")
-        rule.createPath("pageDir/page2.js")
-
-        val watchEvents = observable.take(2).blockingIterable().toList().sortedBy { it.context() as Path }
-
-        watchEvents[0].context() shouldEqual rule.getPath("page1.js")
-        watchEvents[1].context() shouldEqual rule.getPath("page2.js")
-    }
-
-    @Test
     fun testWatchSimpleObservableShouldReceiveSingularEvents() {
 
         val pagesDir = rule.createPath("pageDir")
-        val watcher = pagesDir.watchService()
+
+        val observable = WatchEventObservable.addAndDeleteWatcher(pagesDir)
 
         rule.createPath("pageDir/page1.js")
         rule.createPath("pageDir/page2.js")
-
-        val observable = WatchEventObservable.createSimple(watcher)
 
         var count = 0
         val subscription = observable

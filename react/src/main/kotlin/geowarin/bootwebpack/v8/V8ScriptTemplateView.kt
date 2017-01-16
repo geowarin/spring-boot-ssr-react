@@ -3,7 +3,7 @@ package geowarin.bootwebpack.v8
 import com.eclipsesource.v8.V8Function
 import com.eclipsesource.v8.V8ScriptException
 import com.fasterxml.jackson.databind.ObjectMapper
-import geowarin.bootwebpack.template.SimpleTemplate
+import geowarin.bootwebpack.template.HtmlTemplate
 import geowarin.bootwebpack.webpack.AssetStore
 import mu.KotlinLogging
 import org.springframework.beans.factory.BeanFactoryUtils.beanOfTypeIncludingAncestors
@@ -65,7 +65,7 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
 
     private fun error(e: V8ScriptException): String {
         val errorTemplate =
-                SimpleTemplate.fromResource(ClassPathResource("templates/error.html"))
+                HtmlTemplate.fromResource(ClassPathResource("templates/error.html"))
                         .template(
                                 "message" to (e.message ?: ""),
                                 "jsStack" to e.jsStackTrace,
@@ -76,7 +76,7 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
     }
 
     private fun indexTemplate(componentPropsJson: String, renderedHtml: String): String {
-        val finalHtml = SimpleTemplate.fromResource(ClassPathResource("templates/index.html"))
+        val finalHtml = HtmlTemplate.fromResource(ClassPathResource("templates/index.html"))
                 .insertScriptTag("common.js")
                 .insertScriptTag("$url?modulePath=window.currentComponent")
                 .insertScript("window.currentProps = $componentPropsJson;")

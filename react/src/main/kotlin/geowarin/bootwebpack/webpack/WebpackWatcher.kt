@@ -1,9 +1,9 @@
 package geowarin.bootwebpack.webpack
 
+import geowarin.bootwebpack.config.BootSsrOptions
 import geowarin.bootwebpack.config.ReactSsrProperties
 import geowarin.bootwebpack.config.WebpackOptionFactory
 import geowarin.bootwebpack.files.WatchEventObservable
-import geowarin.bootwebpack.files.watchService
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import mu.KotlinLogging
@@ -38,21 +38,25 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
         var subscription: Disposable? = null
 
         WatchEventObservable
-                .createSimple(pagesDir.watchService())
+                .addAndDeleteWatcher(pagesDir)
                 .subscribeOn(Schedulers.io())
                 .forEach {
-                    logger.info { "Pages added or removed, relaunching webpack" }
-                    subscription?.dispose()
-                    webpackCompiler.stop()
-                    val pages = webpackOptionFactory.getPages(pagesDir)
-                    val compilerOptions = options.webpackCompilerOptions.copy(
-                            pages = pages
-                    )
-                    logger.info { "New pages: ${pages.map(Page::name)}" }
-                    subscription = listenToWebpack(webpackCompiler, compilerOptions)
+                    subscription = restartWebpackCompiler(options, subscription, webpackCompiler)
                 }
 
         subscription = listenToWebpack(webpackCompiler, options.webpackCompilerOptions)
+    }
+
+    private fun restartWebpackCompiler(options: BootSsrOptions, subscription: Disposable?, webpackCompiler: WebpackCompiler): Disposable {
+        logger.info { "Pages added or removed, relaunching webpack" }
+
+        subscription?.dispose()
+        webpackCompiler.stop()
+
+        val newPages = WebpackOptionFactory().getPages(options.additionalBuildInfo.pagesDir)
+        val compilerOptions = options.webpackCompilerOptions.copy(pages = newPages)
+
+        return listenToWebpack(webpackCompiler, compilerOptions)
     }
 
     private fun listenToWebpack(webpackCompiler: WebpackCompiler, compilerOptions: WebpackCompilerOptions): Disposable {

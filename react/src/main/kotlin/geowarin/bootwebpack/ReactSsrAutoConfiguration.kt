@@ -50,7 +50,7 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
         val jsResources = PathMatchingResourcePatternResolver().getResources(pattern)
         jsResources
                 .map { Asset(name = it.filename, source = it.readText()) }
-                .let { assetStore.store(it) }
+                .let { allAssets -> assetStore.store(allAssets) }
     }
 
     @Bean
