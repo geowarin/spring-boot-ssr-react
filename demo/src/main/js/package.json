@@ -1,9 +1,0 @@
-{
-  "name": "demo-js",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "scripts": {
-    "start": "boot-ssr"
-  }
-}

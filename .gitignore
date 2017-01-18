@@ -1,8 +1,4 @@
-target/
-!.mvn/wrapper/maven-wrapper.jar
+boot-ssr/node_modules/
+.gradle
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
+**/build/

@@ -1,5 +1,5 @@
 {
-  "name": "boot-ssr",
+  "name": "spring-boot-ssr-react-node",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",

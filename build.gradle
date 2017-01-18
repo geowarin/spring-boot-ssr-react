@@ -1,0 +1,4 @@
+allprojects {
+    group = 'com.github.geowarin'
+    version = '1.0-SNAPHSOT'
+}

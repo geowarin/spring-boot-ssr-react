@@ -31,8 +31,7 @@ class WebpackCompilerWatchTest {
         val tmpPage = createFileInTmpDir(contentPath = "watch/page1.js", rootDir = rootDir)
 
         val options = WebpackCompilerOptions(
-                // FIXME: hardcoded
-                bootSsrDirectory = "/Users/geowarin/dev/projects/boot-wp/react/boot-ssr".toPath(),
+                bootSsrDirectory = "../spring-boot-ssr-react-node".toPath(),
                 pages = listOf(Page(path = tmpPage, name = "page1")),
                 watchDirectories = listOf(rootDir)
         )

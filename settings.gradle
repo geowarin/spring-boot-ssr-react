@@ -1,0 +1,2 @@
+include 'spring-boot-ssr-react-starter'
+include 'spring-boot-ssr-react-node'
