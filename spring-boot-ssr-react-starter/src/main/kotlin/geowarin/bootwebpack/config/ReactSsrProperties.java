@@ -14,7 +14,7 @@ public class ReactSsrProperties {
      * Location of the boot-ssr node module directory. Can be absolute or relative
      * to the project react.jsSourceDirectory
      */
-    private String bootSsrNodeModulePath = "node_modules/boot-ssr";
+    private String bootSsrNodeModulePath = "node_modules/spring-boot-ssr-react-node";
 
     /**
      * Directory where your React pages can be found. This must be relative to
