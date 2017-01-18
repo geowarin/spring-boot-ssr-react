@@ -18,6 +18,10 @@ open class AssetStore {
         return assets[requestPath]
     }
 
+    fun getCssNames(): List<String> {
+        return assets.keys.filter { it.endsWith(".css") }
+    }
+
     fun hasAsset(requestPath: String): Boolean {
         return assets.contains(requestPath)
     }

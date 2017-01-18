@@ -84,10 +84,11 @@ class WebpackCompiler {
 
         nodeProcess.registerJavaMethod("errorCallback") { args ->
             val error = Error.create(exception = args[0] as V8Object)
-            nodeProcess.stop()
             for (listener in listeners) {
                 listener.errorListener.invoke(error)
             }
+            // FIXME: this blocks forever
+            nodeProcess.stop()
         }
 
         nodeProcess.registerJavaMethod("compilationCallback") { args ->

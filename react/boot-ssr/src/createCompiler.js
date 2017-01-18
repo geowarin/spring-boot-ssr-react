@@ -10,6 +10,8 @@ const SaneWatcherPlugin = require('./watcher/SaneWatcherPlugin');
 const core = require('@webpack-blocks/core');
 const wp = require('@webpack-blocks/webpack-common');
 const babel = require('@webpack-blocks/babel6');
+const extractText = require('@webpack-blocks/extract-text2');
+const postcss = require('@webpack-blocks/postcss');
 
 function resolveLoaders(modules) {
   return () => ({
@@ -60,6 +62,7 @@ const config = (entries, rootDir, options) => core.createConfig(webpack, [
     path: path.join(__dirname, 'dist'),
     filename: '[name].js'
   }),
+  postcss([]),
   babel({
     presets: babelPresets,
     plugins: babelPlugins
@@ -68,12 +71,13 @@ const config = (entries, rootDir, options) => core.createConfig(webpack, [
     new webpack.optimize.CommonsChunkPlugin({name: 'common'}),
     new SaneWatcherPlugin({watchDirectories: options.watchDirectories})
   ]),
+  extractText(),
   resolveLoaders(path.join(rootDir, 'node_modules')),
   wp.defineConstants({
     'process.env.NODE_ENV': process.env.NODE_ENV
   }),
   core.env('development', [
-    wp.sourceMaps()
+    wp.sourceMaps('inline-source-map')
   ]),
   core.env('production', [
     wp.addPlugins([

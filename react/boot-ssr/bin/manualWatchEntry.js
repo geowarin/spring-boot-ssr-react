@@ -5,9 +5,10 @@ const watch = require('../src/watch');
 try {
 
   const pages = [
-    "/Users/geowarin/dev/projects/boot-wp/demo/src/main/js/pages/home.js",
-    "/Users/geowarin/dev/projects/boot-wp/demo/src/main/js/pages/sub/subPage.js",
-    "/Users/geowarin/dev/projects/boot-wp/demo/src/main/js/pages/sub2/subPage.js"
+    {
+      name: 'home',
+      file: "/Users/geowarin/dev/projects/boot-wp/demo/src/main/js/pages/home.js",
+    }
   ];
   const options = {
     pages: pages,

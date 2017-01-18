@@ -32,6 +32,7 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
 
     @Bean
     open fun viewResolver(properties: ReactSsrProperties): ViewResolver {
+        // FIXME: handle 'auto'
         val useCache = properties.mode == RunMode.production
         val v8ScriptTemplateViewResolver = V8ScriptTemplateViewResolver("", ".js", useCache)
         v8ScriptTemplateViewResolver.order = Ordered.HIGHEST_PRECEDENCE

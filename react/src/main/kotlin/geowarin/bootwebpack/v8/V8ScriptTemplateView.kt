@@ -50,7 +50,8 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
 
             val componentPropsJson = ObjectMapper().writeValueAsString(model)
 
-            response.writer.write(indexTemplate(componentPropsJson, renderedHtml))
+            val cssUrls = getAssetStore().getCssNames()
+            response.writer.write(indexTemplate(componentPropsJson, renderedHtml, cssUrls))
 
         } catch (e: V8ScriptException) {
 
@@ -75,14 +76,18 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         return errorTemplate
     }
 
-    private fun indexTemplate(componentPropsJson: String, renderedHtml: String): String {
-        val finalHtml = HtmlTemplate.fromResource(ClassPathResource("templates/index.html"))
+    private fun indexTemplate(componentPropsJson: String, renderedHtml: String, cssUrls:List<String>): String {
+        val builder = HtmlTemplate.fromResource(ClassPathResource("templates/index.html"))
                 .insertScriptTag("common.js")
                 .insertScriptTag("$url?modulePath=window.currentComponent")
                 .insertScript("window.currentProps = $componentPropsJson;")
                 .insertScriptTag("client.js")
                 .replaceNodeContent("#app", renderedHtml)
-                .toString()
+
+        cssUrls.forEach { url ->
+            builder.insertCssTag(url)
+        }
+        val finalHtml = builder.toString()
         return finalHtml
     }
 

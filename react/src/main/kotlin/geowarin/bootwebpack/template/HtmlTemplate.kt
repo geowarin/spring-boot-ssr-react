@@ -38,6 +38,14 @@ class HtmlTemplate(html: String = defaultHtml) {
         return this
     }
 
+    fun insertCssTag(cssUrl: String): HtmlTemplate {
+        document.head().appendElement("link")
+                .attr("rel", "stylesheet")
+                .attr("type", "text/css")
+                .attr("href", cssUrl)
+        return this
+    }
+
     fun insertScriptTag(scriptUrl: String): HtmlTemplate {
         document.body().appendElement("script").attr("type", "text/javascript").attr("src", scriptUrl)
         return this
