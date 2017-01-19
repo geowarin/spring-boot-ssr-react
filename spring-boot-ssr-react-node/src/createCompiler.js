@@ -8,7 +8,7 @@ const MemoryFileSystem = require('memory-fs');
 const SaneWatcherPlugin = require('./watcher/SaneWatcherPlugin');
 
 const core = require('@webpack-blocks/core');
-const wp = require('@webpack-blocks/webpack-common');
+const wp = require('@webpack-blocks/webpack2');
 const babel = require('@webpack-blocks/babel6');
 const extractText = require('@webpack-blocks/extract-text2');
 const postcss = require('@webpack-blocks/postcss');
@@ -44,7 +44,7 @@ let uglifyJs = function () {
   });
 };
 
-const config = (entries, rootDir, options) => core.createConfig(webpack, [
+const config = (entries, rootDir, options) => wp.createConfig([
   wp.entryPoint(entries),
   wp.setOutput({
     path: path.join(__dirname, 'dist'),

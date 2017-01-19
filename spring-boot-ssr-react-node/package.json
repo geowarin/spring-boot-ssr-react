@@ -11,17 +11,13 @@
     "@webpack-blocks/core": "^0.4.0-rc",
     "@webpack-blocks/extract-text2": "^0.4.0-rc",
     "@webpack-blocks/postcss": "^0.4.0-rc.1",
-    "@webpack-blocks/webpack-common": "^0.4.0-rc",
+    "@webpack-blocks/webpack2": "^0.4.0-rc.2",
     "async": "^2.1.4",
     "autoprefixer": "^6.6.1",
     "axios": "^0.15.3",
-    "babel-core": "^6.20.0",
-    "babel-loader": "^6.2.9",
-    "babel-plugin-module-resolver": "^2.4.0",
     "babel-plugin-transform-object-rest-spread": "^6.20.2",
     "babel-preset-latest": "^6.16.0",
     "babel-preset-react": "^6.16.0",
-    "css-loader": "^0.26.1",
     "domready": "^1.0.8",
     "little-loader": "^0.2.0",
     "memory-fs": "^0.4.1",
@@ -30,8 +26,6 @@
     "postcss-nested": "^1.0.0",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
-    "sane": "^1.5.0",
-    "style-loader": "^0.13.1",
-    "webpack": "beta"
+    "sane": "^1.5.0"
   }
 }
