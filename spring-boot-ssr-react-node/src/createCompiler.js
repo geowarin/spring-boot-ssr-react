@@ -44,7 +44,40 @@ let uglifyJs = function () {
   });
 };
 
-const config = (entries, rootDir, options) => wp.createConfig([
+function createConfig (configSetters) {
+  return core.createConfig(webpack, [ createBaseConfig ].concat(configSetters))
+}
+
+function createBaseConfig (context) {
+  return {
+    module: {
+      loaders: [
+        {
+          test: context.fileType('text/css'),
+          loaders: [ 'style-loader', 'css-loader' ]
+        }, {
+          test: context.fileType('image'),
+          loaders: [ 'file-loader' ]
+        }, {
+          test: context.fileType('application/font'),
+          loaders: [ 'file-loader?name=fonts/[name][hash].[ext]' ]
+        }, {
+          test: context.fileType('audio'),
+          loaders: [ 'url-loader' ]
+        }, {
+          test: context.fileType('video'),
+          loaders: [ 'url-loader' ]
+        }
+      ]
+    },
+
+    resolve: {
+      extensions: [ '.js', '.jsx', '.json' ]
+    }
+  }
+}
+
+const config = (entries, rootDir, options) => createConfig([
   wp.entryPoint(entries),
   wp.setOutput({
     path: path.join(__dirname, 'dist'),
@@ -52,6 +85,8 @@ const config = (entries, rootDir, options) => wp.createConfig([
   }),
   postcss([
     require('postcss-import'),
+    require('postcss-url'),
+    require('postcss-color-function'),
     require('autoprefixer'),
     require('postcss-custom-properties'),
     require('postcss-nested')
@@ -64,7 +99,7 @@ const config = (entries, rootDir, options) => wp.createConfig([
     new webpack.optimize.CommonsChunkPlugin({name: 'common'}),
     new SaneWatcherPlugin({watchDirectories: options.watchDirectories})
   ]),
-  extractText(),
+  extractText('[name].[contenthash:8].css'),
   resolveLoaders(path.join(rootDir, 'node_modules')),
   wp.defineConstants({
     'process.env.NODE_ENV': process.env.NODE_ENV

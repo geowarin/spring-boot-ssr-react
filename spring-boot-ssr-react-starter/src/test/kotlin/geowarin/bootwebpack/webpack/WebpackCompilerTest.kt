@@ -22,8 +22,6 @@ class WebpackCompilerTest {
         val compilation = WebpackCompiler().compile(pageOptions("css/styled.js"))
 
         val source = compilation.source { it.name.endsWith("css") }
-//        compilation shouldContainAssets listOf("")
-        println(source)
         source shouldEqual """div {
     color: red;
     size: calc(12px * 2);
@@ -36,6 +34,19 @@ body div.myClass {
 }
 """
     }
+
+    @Test
+    fun compilation_fonts() {
+        val compilation = WebpackCompiler().compile(pageOptions("fonts/styled.js"))
+
+        val source = compilation.source { it.name.endsWith("css") }
+        source shouldEqual """@font-face {
+  src: url(fonts/fontello-webfont32194e02049a53df82b262c7294c6a3b.woff2) format('woff2');
+}
+"""
+        compilation shouldContainAssets listOf("client.js", "common.js", "fonts/fontello-webfont32194e02049a53df82b262c7294c6a3b.woff2", "renderer.js", "styled.aced6c0a.css", "styled.js")
+    }
+
 
     @Test
     fun compilation_errors() {
