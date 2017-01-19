@@ -1,0 +1,9 @@
+@import "variables.css";
+
+body {
+    div {
+        &.myClass {
+            display: flex;
+        }
+    }
+}

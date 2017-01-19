@@ -70,6 +70,7 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
 
         if (res.hasErrors()) {
             val error = res.errors.first()
+            // todo: display more info (source, stack)
             logger.error { "\n" + error.message }
         }
 

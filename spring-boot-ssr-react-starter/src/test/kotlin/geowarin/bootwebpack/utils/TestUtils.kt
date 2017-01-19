@@ -2,6 +2,7 @@ package geowarin.bootwebpack.utils
 
 import geowarin.bootwebpack.extensions.path.fileNameWithoutExtension
 import geowarin.bootwebpack.extensions.path.toPath
+import geowarin.bootwebpack.webpack.Asset
 import geowarin.bootwebpack.webpack.CompilationResult
 import geowarin.bootwebpack.webpack.Page
 import geowarin.bootwebpack.webpack.WebpackCompilerOptions
@@ -38,7 +39,15 @@ fun CompilationResult.source(assetName: String): String {
         throw AssertionError("Compilation should be successful: " + this.errors.first().message)
     }
     val asset = this.assets.find { it.name == assetName }
-    return asset?.source ?: throw IllegalStateException("Could not find asset ${assetName}")
+    return asset?.source ?: throw IllegalStateException("Could not find asset $assetName")
+}
+
+fun CompilationResult.source(predicate: (Asset) -> Boolean): String {
+    if (this.hasErrors()) {
+        throw AssertionError("Compilation should be successful: " + this.errors.first().message)
+    }
+    val asset = this.assets.find(predicate)
+    return asset?.source ?: throw IllegalStateException("Could not find asset")
 }
 
 infix fun CompilationResult.shouldHaveError(errorMessage: String) {

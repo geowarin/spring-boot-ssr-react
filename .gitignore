@@ -2,3 +2,4 @@ boot-ssr/node_modules/
 .gradle
 
 **/build/
+classes/

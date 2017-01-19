@@ -28,19 +28,7 @@ const babelPresets = [
   require.resolve('babel-preset-react')
 ];
 const babelPlugins = [
-  require.resolve('babel-plugin-transform-object-rest-spread'),
-  [
-    require.resolve('babel-plugin-module-resolver'),
-    {
-      alias: {
-        react: require.resolve('react'),
-        "react-dom": require.resolve('react-dom'),
-        "react-dom/server": require.resolve('react-dom/server'),
-        "axios": require.resolve('axios'),
-        "little-loader": require.resolve('little-loader')
-      }
-    }
-  ]
+  require.resolve('babel-plugin-transform-object-rest-spread')
 ];
 
 let uglifyJs = function () {
@@ -62,7 +50,12 @@ const config = (entries, rootDir, options) => core.createConfig(webpack, [
     path: path.join(__dirname, 'dist'),
     filename: '[name].js'
   }),
-  postcss([]),
+  postcss([
+    require('postcss-import'),
+    require('autoprefixer'),
+    require('postcss-custom-properties'),
+    require('postcss-nested')
+  ]),
   babel({
     presets: babelPresets,
     plugins: babelPlugins
@@ -75,6 +68,16 @@ const config = (entries, rootDir, options) => core.createConfig(webpack, [
   resolveLoaders(path.join(rootDir, 'node_modules')),
   wp.defineConstants({
     'process.env.NODE_ENV': process.env.NODE_ENV
+  }),
+  wp.customConfig({
+    resolve: {
+      modules: [
+        // path.join(rootDir, 'src'),
+        path.join('./node_modules'),
+        path.join(rootDir, 'node_modules'),
+      ],
+      extensions: ['.js', '.jsx']
+    }
   }),
   core.env('development', [
     wp.sourceMaps('inline-source-map')

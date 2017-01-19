@@ -1,0 +1,9 @@
+:root {
+    --color: red;
+    --num: 12px;
+}
+
+div {
+    color: var(--color);
+    size: calc(var(--num) * 2);
+}
