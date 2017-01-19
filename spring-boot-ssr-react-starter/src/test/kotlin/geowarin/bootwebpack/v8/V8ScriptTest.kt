@@ -49,7 +49,7 @@ console.dir(obj)
         val assetStore = AssetStore()
         assetStore.store(listOf(Asset(
                 name = "testConsole.js",
-                source = source
+                source = source.toByteArray()
         )))
 
         val v8Script = V8Script(assetStore)

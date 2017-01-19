@@ -22,6 +22,7 @@ class WebpackCompilerTest {
         val compilation = WebpackCompiler().compile(pageOptions("css/styled.js"))
 
         val source = compilation.source { it.name.endsWith("css") }
+//        compilation shouldContainAssets listOf("")
         println(source)
         source shouldEqual """div {
     color: red;

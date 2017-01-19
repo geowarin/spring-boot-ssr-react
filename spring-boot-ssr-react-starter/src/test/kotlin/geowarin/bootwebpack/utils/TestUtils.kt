@@ -39,7 +39,8 @@ fun CompilationResult.source(assetName: String): String {
         throw AssertionError("Compilation should be successful: " + this.errors.first().message)
     }
     val asset = this.assets.find { it.name == assetName }
-    return asset?.source ?: throw IllegalStateException("Could not find asset $assetName")
+    val bytes = asset?.source ?: throw IllegalStateException("Could not find asset $assetName")
+    return String(bytes)
 }
 
 fun CompilationResult.source(predicate: (Asset) -> Boolean): String {
@@ -47,7 +48,8 @@ fun CompilationResult.source(predicate: (Asset) -> Boolean): String {
         throw AssertionError("Compilation should be successful: " + this.errors.first().message)
     }
     val asset = this.assets.find(predicate)
-    return asset?.source ?: throw IllegalStateException("Could not find asset")
+    val bytes = asset?.source ?: throw IllegalStateException("Could not find asset")
+    return String(bytes)
 }
 
 infix fun CompilationResult.shouldHaveError(errorMessage: String) {

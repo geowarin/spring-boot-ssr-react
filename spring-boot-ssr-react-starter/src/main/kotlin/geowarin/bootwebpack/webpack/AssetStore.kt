@@ -1,9 +1,13 @@
 package geowarin.bootwebpack.webpack
 
 import com.eclipsesource.v8.V8Object
+import com.eclipsesource.v8.V8TypedArray
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+
 
 @Component
 open class AssetStore {
@@ -29,8 +33,13 @@ open class AssetStore {
     fun getAssetAsResource(requestPath: String, modulePath: String?): Resource? {
         val asset = getAsset(requestPath)
         if (asset != null) {
-            val prefix = if (modulePath != null) modulePath + " = " else ""
-            return WebpackResource((prefix + asset.source).toByteArray(), asset.name)
+            if (modulePath != null) {
+                val prefix = modulePath + " = "
+                val source = String(asset.source)
+                return WebpackResource((prefix + source).toByteArray(), asset.name)
+            } else {
+                return WebpackResource(asset.source, asset.name)
+            }
         }
         return null
     }
@@ -38,7 +47,7 @@ open class AssetStore {
     fun getAssetSource(requestPath: String): String? {
         val asset = getAsset(requestPath)
         if (asset != null) {
-            return asset.source
+            return String(asset.source)
         }
         return null
     }
@@ -55,6 +64,26 @@ class WebpackResource(byteArray: ByteArray?, val fileName: String) : ByteArrayRe
     }
 }
 
-data class Asset(val name: String, val source: String) {
-    constructor(obj: V8Object) : this(name = obj.getString("name"), source = obj.getString("source"))
+data class Asset(val name: String, val source: ByteArray) {
+    constructor(obj: V8Object) : this(name = obj.getString("name"), source = getSourceAsString(obj))
+}
+
+fun getSourceAsString(obj: V8Object): ByteArray {
+    val sourceObj = obj.get("source")
+    when (sourceObj) {
+        is V8TypedArray -> {
+            return toByteArray(sourceObj.byteBuffer)
+        }
+        is String -> {
+            return sourceObj.toByteArray(StandardCharsets.UTF_8)
+        }
+    }
+
+    throw IllegalStateException("Unexpected source content")
+}
+
+fun toByteArray(buffer: ByteBuffer): ByteArray {
+    val bytes: ByteArray = ByteArray(buffer.remaining())
+    buffer.get(bytes)
+    return bytes
 }

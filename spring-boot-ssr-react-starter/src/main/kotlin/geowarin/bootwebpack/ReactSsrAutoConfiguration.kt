@@ -4,6 +4,7 @@ import geowarin.bootwebpack.conditions.ConditionalOnDevelopmentMode
 import geowarin.bootwebpack.conditions.ConditionalOnProductionMode
 import geowarin.bootwebpack.config.ReactSsrProperties
 import geowarin.bootwebpack.config.RunMode
+import geowarin.bootwebpack.extensions.resource.readBytes
 import geowarin.bootwebpack.extensions.resource.readText
 import geowarin.bootwebpack.v8.V8ScriptTemplateViewResolver
 import geowarin.bootwebpack.webpack.Asset
@@ -50,7 +51,7 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
         val pattern = "/${properties.webpackAssetsLocation}/**/*.js"
         val jsResources = PathMatchingResourcePatternResolver().getResources(pattern)
         jsResources
-                .map { Asset(name = it.filename, source = it.readText()) }
+                .map { Asset(name = it.filename, source = it.readBytes()) }
                 .let { allAssets -> assetStore.store(allAssets) }
     }
 
