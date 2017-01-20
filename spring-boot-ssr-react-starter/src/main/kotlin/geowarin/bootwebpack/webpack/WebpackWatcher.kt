@@ -9,10 +9,14 @@ import io.reactivex.schedulers.Schedulers
 import mu.KotlinLogging
 import org.springframework.boot.ApplicationHome
 import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.boot.devtools.autoconfigure.OptionalLiveReloadServer
+import org.springframework.boot.devtools.livereload.LiveReloadServer
 import org.springframework.context.ApplicationListener
 import java.io.File
 
-open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrProperties) : ApplicationListener<ApplicationReadyEvent> {
+typealias Refresher = () -> Unit
+
+open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrProperties, val refresher: Refresher) : ApplicationListener<ApplicationReadyEvent> {
     private val logger = KotlinLogging.logger {}
 
     companion object {
@@ -73,6 +77,7 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
             // todo: display more info (source, stack)
             logger.error { "\n" + error.message }
         }
+        refresher()
 
         val assets = res.assets
         logger.info { "${assets.size} webpack assets compiled in ${res.compileTime}ms" }
