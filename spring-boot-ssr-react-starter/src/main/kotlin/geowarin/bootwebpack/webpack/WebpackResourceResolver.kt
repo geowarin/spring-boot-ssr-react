@@ -7,27 +7,22 @@ import javax.servlet.http.HttpServletRequest
 
 // TODO: test
 open class WebpackResourceResolver(val assetStore: AssetStore) : ResourceResolver {
-    private val ignoredPaths = listOf("api")
 
     override fun resolveResource(request: HttpServletRequest, requestPath: String, locations: List<Resource>, chain: ResourceResolverChain): Resource? {
         val modulePath = request.getParameter("modulePath")
-        val resolvedResource = resolve(requestPath, modulePath)
-        return resolvedResource
+        return resolve(requestPath, modulePath) ?:
+                chain.resolveResource(request, requestPath, locations)
     }
 
     override fun resolveUrlPath(resourcePath: String, locations: List<Resource>, chain: ResourceResolverChain): String? {
         val resolvedResource = resolve(resourcePath)
-        return resolvedResource?.url.toString()
+        if (resolvedResource != null) {
+            return resolvedResource.url.toString()
+        }
+        return chain.resolveUrlPath(resourcePath, locations)
     }
 
     private fun resolve(requestPath: String, modulePath: String? = null): Resource? {
-        if (isIgnored(requestPath)) {
-            return null
-        }
         return assetStore.getAssetAsResource(requestPath, modulePath)
-    }
-
-    private fun isIgnored(path: String): Boolean {
-        return ignoredPaths.contains(path)
     }
 }
