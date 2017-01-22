@@ -2,7 +2,9 @@ package geowarin.bootwebpack.v8
 
 import com.eclipsesource.v8.*
 import com.eclipsesource.v8.utils.V8ObjectUtils
+import geowarin.bootwebpack.extensions.resource.readText
 import geowarin.bootwebpack.webpack.AssetStore
+import org.springframework.core.io.Resource
 
 interface Console {
     fun assert(vararg args: Any)
@@ -85,7 +87,16 @@ class V8Script(val assetStore: AssetStore, console: Console = StdoutConsole()) {
 
     fun execute(path: String) {
         val scriptSrc = assetStore.getAssetSource(path) ?: throw IllegalStateException("Could not find script $path")
-        val obj = v8.executeScript(scriptSrc)
+        executeStr(scriptSrc)
+    }
+
+    fun execute(script: Resource) {
+        val scriptSrc = script.readText()
+        executeStr(scriptSrc)
+    }
+
+    fun executeStr(script: String) {
+        val obj = v8.executeScript(script)
         if (obj is V8Value) {
             toClean.add(obj)
         }

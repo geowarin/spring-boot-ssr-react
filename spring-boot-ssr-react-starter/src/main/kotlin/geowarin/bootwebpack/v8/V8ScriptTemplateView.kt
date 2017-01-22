@@ -43,6 +43,8 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
 
         val v8Script = V8Script(getAssetStore())
         try {
+            // https://github.com/facebook/react/issues/6451
+            v8Script.execute(ClassPathResource("object.assign.polyfill.js"))
             v8Script.execute("common.js")
             val rendererFun = v8Script.executeAndGet("renderer.js") as V8Function
             val component = v8Script.executeAndGet(url) as V8Function
