@@ -2,6 +2,7 @@ package geowarin.bootwebpack.webpack
 
 import com.eclipsesource.v8.V8Object
 import com.eclipsesource.v8.V8TypedArray
+import com.eclipsesource.v8.V8Value
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
@@ -65,17 +66,23 @@ class WebpackResource(byteArray: ByteArray?, val fileName: String) : ByteArrayRe
 }
 
 data class Asset(val name: String, val source: ByteArray) {
-    constructor(obj: V8Object) : this(name = obj.getString("name"), source = getSourceAsString(obj))
+    constructor(obj: V8Object) : this(name = obj.getString("name"), source = getSourceAsByteArray(obj))
 }
 
-fun getSourceAsString(obj: V8Object): ByteArray {
+fun getSourceAsByteArray(obj: V8Object): ByteArray {
     val sourceObj = obj.get("source")
-    when (sourceObj) {
-        is V8TypedArray -> {
-            return toByteArray(sourceObj.byteBuffer)
+    try {
+        when (sourceObj) {
+            is V8TypedArray -> {
+                return toByteArray(sourceObj.byteBuffer)
+            }
+            is String -> {
+                return sourceObj.toByteArray(StandardCharsets.UTF_8)
+            }
         }
-        is String -> {
-            return sourceObj.toByteArray(StandardCharsets.UTF_8)
+    } finally {
+        if (sourceObj is V8Value) {
+            sourceObj.release()
         }
     }
 

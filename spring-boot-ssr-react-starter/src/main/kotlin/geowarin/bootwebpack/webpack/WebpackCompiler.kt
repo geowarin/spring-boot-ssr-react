@@ -48,7 +48,9 @@ class WebpackCompiler {
         nodeProcess.startAsync()
 
         val observable = createObservable(BackpressureStrategy.DROP)
-        return observable.blockingFirst()
+        val compilationResult = observable.blockingFirst()
+        nodeProcess.stop()
+        return compilationResult
     }
 
     fun watchAsync(options: WebpackCompilerOptions): Flowable<CompilationResult> {
