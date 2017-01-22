@@ -28,6 +28,8 @@ const babelPresets = [
   require.resolve('babel-preset-react')
 ];
 const babelPlugins = [
+  require.resolve('babel-plugin-transform-decorators-legacy'),
+  require.resolve('babel-plugin-transform-class-properties'),
   require.resolve('babel-plugin-transform-object-rest-spread')
 ];
 
@@ -44,35 +46,35 @@ let uglifyJs = function () {
   });
 };
 
-function createConfig (configSetters) {
-  return core.createConfig(webpack, [ createBaseConfig ].concat(configSetters))
+function createConfig(configSetters) {
+  return core.createConfig(webpack, [createBaseConfig].concat(configSetters))
 }
 
-function createBaseConfig (context) {
+function createBaseConfig(context) {
   return {
     module: {
       loaders: [
         {
           test: context.fileType('text/css'),
-          loaders: [ 'style-loader', 'css-loader' ]
+          loaders: ['style-loader', 'css-loader']
         }, {
           test: context.fileType('image'),
-          loaders: [ 'file-loader' ]
+          loaders: ['file-loader']
         }, {
           test: context.fileType('application/font'),
-          loaders: [ 'file-loader?name=fonts/[name][hash].[ext]' ]
+          loaders: ['file-loader?name=fonts/[name][hash].[ext]']
         }, {
           test: context.fileType('audio'),
-          loaders: [ 'url-loader' ]
+          loaders: ['url-loader']
         }, {
           test: context.fileType('video'),
-          loaders: [ 'url-loader' ]
+          loaders: ['url-loader']
         }
       ]
     },
 
     resolve: {
-      extensions: [ '.js', '.jsx', '.json' ]
+      extensions: ['.js', '.jsx', '.json']
     }
   }
 }
@@ -107,7 +109,6 @@ const config = (entries, rootDir, options) => createConfig([
   wp.customConfig({
     resolve: {
       modules: [
-        // path.join(rootDir, 'src'),
         path.join('./node_modules'),
         path.join(rootDir, 'node_modules'),
       ],
