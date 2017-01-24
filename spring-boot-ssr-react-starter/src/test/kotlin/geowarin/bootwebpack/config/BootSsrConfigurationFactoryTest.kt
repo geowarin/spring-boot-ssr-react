@@ -7,7 +7,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 
-class WebpackOptionFactoryTest {
+class BootSsrConfigurationFactoryTest {
 
     @Rule @JvmField val rule: FileSystemRule = FileSystemRule()
 
@@ -19,7 +19,7 @@ class WebpackOptionFactoryTest {
         val page1 = rule.createPath("pagesDir/page1.js")
         val subPage = rule.createPath("pagesDir/sub/subPage.js")
 
-        val pages = WebpackOptionFactory().getPages(pagesDir = rule.getPath("pagesDir"))
+        val pages = configFactory().getPages(pagesDir = rule.getPath("pagesDir"))
 
         pages.map(Page::name) shouldEqual listOf("page1", "sub/subPage")
         pages.map(Page::path) shouldEqual listOf(page1, subPage)
@@ -29,10 +29,15 @@ class WebpackOptionFactoryTest {
     fun checkPagesDirectory() {
         // the path does not exist
         val pagesDirPath = rule.getPath("myProject/js/pages")
-        val checkedPageDir = WebpackOptionFactory().checkPagesDirectory(pagesDirPath)
+        val checkedPageDir = configFactory().checkPagesDirectory(pagesDirPath)
 
         checkedPageDir shouldEqual pagesDirPath
         // TODO: assert warning
+    }
+
+    private fun configFactory(): BootSsrConfigurationFactory {
+        val configFactory = BootSsrConfigurationFactory(ReactSsrProperties())
+        return configFactory
     }
 
     @Test
@@ -41,7 +46,7 @@ class WebpackOptionFactoryTest {
         val relativeNodeModulePath = rule.getPath("src/main/js")
         val expectedPath = rule.createPath("jsSourceDir/src/main/js")
 
-        val checkedNodeModulePath = WebpackOptionFactory().checkNodeModulePath(jsSourceDir, relativeNodeModulePath)
+        val checkedNodeModulePath = configFactory().checkNodeModulePath(jsSourceDir, relativeNodeModulePath.toString())
         checkedNodeModulePath shouldEqual expectedPath
     }
 
@@ -50,7 +55,7 @@ class WebpackOptionFactoryTest {
         val jsSourceDir = rule.createPath("whatever")
         val absoluteNodeModulePath = rule.createPath("/myProject/src/main/js")
 
-        val checkedNodeModulePath = WebpackOptionFactory().checkNodeModulePath(jsSourceDir, absoluteNodeModulePath)
+        val checkedNodeModulePath = configFactory().checkNodeModulePath(jsSourceDir, absoluteNodeModulePath.toString())
         checkedNodeModulePath shouldEqual absoluteNodeModulePath
     }
 
@@ -59,14 +64,8 @@ class WebpackOptionFactoryTest {
         thrown.expect(IllegalStateException::class.java)
 
         val jsSourceDir = rule.createPath("whatever")
-        val absoluteNodeModulePath = rule.getPath("/myProject/src/main/js")
+        val absoluteNodeModulePath = "/myProject/src/main/js"
 
-        WebpackOptionFactory().checkNodeModulePath(jsSourceDir, absoluteNodeModulePath)
+        configFactory().checkNodeModulePath(jsSourceDir, absoluteNodeModulePath)
     }
-
-    @Test
-    fun checkJsSourceDir() {
-
-    }
-
 }

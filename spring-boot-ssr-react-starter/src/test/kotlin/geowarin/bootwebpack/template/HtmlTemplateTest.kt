@@ -51,6 +51,15 @@ class HtmlTemplateTest {
     }
 
     @Test
+    fun shouldAcceptNullValueAsTemplat() {
+        val simpleTemplate = HtmlTemplate("""<html><div id="app">{html}</div></html>""")
+        simpleTemplate.template("html" to null)
+
+        val html = simpleTemplate.toString()
+        html shouldEqual """<html><head></head><body><div id="app"></div></body></html>"""
+    }
+
+    @Test
     fun shouldInsertInElement() {
         val simpleTemplate = HtmlTemplate("""<html><div id="app">{html}</div></html>""")
         simpleTemplate.replaceNodeContent("#app", "<div>Hello</div>")

@@ -1,23 +1,20 @@
 package geowarin.bootwebpack.webpack
 
-import geowarin.bootwebpack.config.BootSsrOptions
-import geowarin.bootwebpack.config.ReactSsrProperties
-import geowarin.bootwebpack.config.WebpackOptionFactory
+import geowarin.bootwebpack.config.BootSsrConfiguration
+import geowarin.bootwebpack.config.BootSsrConfigurationFactory
 import geowarin.bootwebpack.files.WatchEventObservable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import mu.KotlinLogging
-import org.springframework.boot.ApplicationHome
 import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.boot.devtools.autoconfigure.OptionalLiveReloadServer
-import org.springframework.boot.devtools.livereload.LiveReloadServer
 import org.springframework.context.ApplicationListener
-import java.io.File
+import java.nio.charset.StandardCharsets
 
 typealias Refresher = () -> Unit
 
-open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrProperties, val refresher: Refresher) : ApplicationListener<ApplicationReadyEvent> {
+open class WebpackWatcher(val assetStore: AssetStore, val configurationFactory: BootSsrConfigurationFactory, val refresher: Refresher) : ApplicationListener<ApplicationReadyEvent> {
     private val logger = KotlinLogging.logger {}
+    private var vendorsManifest: Asset? = null
 
     companion object {
         var INITIALIZED = false
@@ -27,38 +24,56 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
         // Do not reload if the devtools trigger a refresh
         if (!INITIALIZED) {
             INITIALIZED = true
-            val projectDir = getProjectDir(event.springApplication.mainApplicationClass)
-            watch(projectDir)
+            val config = configurationFactory.create()
+            if (config.additionalBuildInfo.enableDll) {
+                generateDll(config)
+            }
+            watch(config)
         }
     }
 
-    fun watch(projectDir: File) {
-        val webpackOptionFactory = WebpackOptionFactory()
-        val options = webpackOptionFactory.create(projectDir.toPath(), properties)
+    private fun generateDll(config: BootSsrConfiguration) {
 
-        val pagesDir = options.additionalBuildInfo.pagesDir
+        logger.info { "Generating DLL..." }
+        val dllCompilation = DefaultWebpackCompiler().generateDll(config.webpackCompilerOptions)
+        val vendors = dllCompilation.assets.find { it.name == "vendors.dll.js" } ?: throw IllegalStateException()
+        assetStore.store(listOf(vendors))
+        vendorsManifest = dllCompilation.assets.find { it.name == "vendors.manifest.json" }
+        logger.info { "Generated DLL in ${dllCompilation.compileTime}ms" }
 
-        val webpackCompiler = WebpackCompiler()
+//        WebpackCompilationWriter().write(dllCompilation, config.additionalBuildInfo.jsSourceDir / "dll")
+    }
+
+    fun watch(config: BootSsrConfiguration) {
+        val pagesDir = config.additionalBuildInfo.pagesDir
+
+        val webpackCompiler = DefaultWebpackCompiler()
         var subscription: Disposable? = null
 
         WatchEventObservable
                 .addAndDeleteWatcher(pagesDir)
                 .subscribeOn(Schedulers.io())
                 .forEach {
-                    subscription = restartWebpackCompiler(options, subscription, webpackCompiler)
+                    subscription = restartWebpackCompiler(config, subscription, webpackCompiler)
                 }
 
-        subscription = listenToWebpack(webpackCompiler, options.webpackCompilerOptions)
+        val compilerOptions = config.webpackCompilerOptions.copy(
+                dllManifestContent = vendorsManifest?.source?.toString(StandardCharsets.UTF_8)
+        )
+        subscription = listenToWebpack(webpackCompiler, compilerOptions)
     }
 
-    private fun restartWebpackCompiler(options: BootSsrOptions, subscription: Disposable?, webpackCompiler: WebpackCompiler): Disposable {
+    private fun restartWebpackCompiler(configuration: BootSsrConfiguration, subscription: Disposable?, webpackCompiler: WebpackCompiler): Disposable {
         logger.info { "Pages added or removed, relaunching webpack" }
 
         subscription?.dispose()
         webpackCompiler.stop()
 
-        val newPages = WebpackOptionFactory().getPages(options.additionalBuildInfo.pagesDir)
-        val compilerOptions = options.webpackCompilerOptions.copy(pages = newPages)
+        val newPages = configurationFactory.getPages(configuration.additionalBuildInfo.pagesDir)
+        val compilerOptions = configuration.webpackCompilerOptions.copy(
+                pages = newPages,
+                dllManifestContent = vendorsManifest?.source?.toString(StandardCharsets.UTF_8)
+        )
 
         return listenToWebpack(webpackCompiler, compilerOptions)
     }
@@ -77,25 +92,11 @@ open class WebpackWatcher(val assetStore: AssetStore, val properties: ReactSsrPr
             // todo: display more info (source, stack)
             logger.error { "\n" + error.message }
         }
-        refresher()
 
         val assets = res.assets
         logger.info { "${assets.size} webpack assets compiled in ${res.compileTime}ms" }
         assetStore.store(assets)
-    }
 
-    fun getProjectDir(mainApplicationClass: Class<*>): File {
-        // TODO: simplify this
-        val dir = ApplicationHome(mainApplicationClass).dir
-        if (dir.toPath().endsWith("target/classes")) {
-            // maven
-            return dir.parentFile.parentFile
-        } else if (dir.toPath().endsWith("build/classes/main")) {
-            // gradle
-            return dir.parentFile.parentFile.parentFile
-        } else {
-            // fallback
-            return File(System.getProperty("user.dir"))
-        }
+        refresher()
     }
 }

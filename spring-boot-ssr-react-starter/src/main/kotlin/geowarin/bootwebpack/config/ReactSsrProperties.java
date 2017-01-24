@@ -2,6 +2,9 @@ package geowarin.bootwebpack.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @ConfigurationProperties(prefix = "react")
 public class ReactSsrProperties {
     /**
@@ -36,6 +39,10 @@ public class ReactSsrProperties {
      * directory, in the production jar.
      */
     private String webpackAssetsLocation = "webpack_assets";
+
+    private boolean enableDll = false;
+
+    private List<String> additionalDllLibs = new ArrayList<>();
 
     public String getBootSsrNodeModulePath() {
         return bootSsrNodeModulePath;
@@ -75,5 +82,21 @@ public class ReactSsrProperties {
 
     public void setWebpackAssetsLocation(String webpackAssetsLocation) {
         this.webpackAssetsLocation = webpackAssetsLocation;
+    }
+
+    public boolean isEnableDll() {
+        return enableDll;
+    }
+
+    public void setEnableDll(boolean enableDll) {
+        this.enableDll = enableDll;
+    }
+
+    public List<String> getAdditionalDllLibs() {
+        return additionalDllLibs;
+    }
+
+    public void setAdditionalDllLibs(List<String> additionalDllLibs) {
+        this.additionalDllLibs = additionalDllLibs;
     }
 }

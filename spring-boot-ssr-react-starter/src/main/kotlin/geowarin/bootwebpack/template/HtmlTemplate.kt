@@ -61,10 +61,10 @@ class HtmlTemplate(html: String = defaultHtml) {
         return this
     }
 
-    fun template(vararg values: Pair<String, String>): HtmlTemplate {
+    fun template(vararg values: Pair<String, String?>): HtmlTemplate {
         var html = document.html()
         values.forEach {
-            html = html.replace("{${it.first}}", HtmlUtils.htmlEscape(it.second))
+            html = html.replace("{${it.first}}", HtmlUtils.htmlEscape(it.second ?: ""))
         }
         document = parse(html)
 

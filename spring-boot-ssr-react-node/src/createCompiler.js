@@ -79,6 +79,43 @@ function createBaseConfig(context) {
   }
 }
 
+const dllConfig = (vendors, rootDir, options) => createConfig([
+  wp.entryPoint(vendors),
+  wp.setOutput({
+    path: path.join(options.projectDirectory, '/dll'),
+    filename: 'vendors.dll.js',
+    library: 'vendors_library'
+  }),
+  wp.addPlugins([
+    new webpack.DllPlugin({
+      path: path.join(options.projectDirectory, '/dll', 'vendors.manifest.json'),
+      name: 'vendors_library'
+    })
+  ]),
+  wp.customConfig({
+    context: options.projectDirectory,
+    resolve: {
+      modules: [
+        './node_modules',
+        path.join(rootDir, 'node_modules'),
+      ],
+      extensions: ['.js', '.jsx']
+    }
+  })
+]);
+
+function dllPlugin(options) {
+  if (options.dllManifestContent) {
+    return [
+      new webpack.DllReferencePlugin({
+        context: options.projectDirectory,
+        manifest: JSON.parse(options.dllManifestContent)
+      })
+    ];
+  }
+  return [];
+}
+
 const config = (entries, rootDir, options) => createConfig([
   wp.entryPoint(entries),
   wp.setOutput({
@@ -107,16 +144,18 @@ const config = (entries, rootDir, options) => createConfig([
     'process.env.NODE_ENV': process.env.NODE_ENV
   }),
   wp.customConfig({
+    context: options.projectDirectory,
     resolve: {
       modules: [
-        path.join('./node_modules'),
+        './node_modules',
         path.join(rootDir, 'node_modules'),
       ],
       extensions: ['.js', '.jsx']
     }
   }),
   core.env('development', [
-    wp.sourceMaps('inline-source-map')
+    wp.sourceMaps('inline-source-map'),
+    wp.addPlugins(dllPlugin(options))
   ]),
   core.env('production', [
     wp.addPlugins([
@@ -135,6 +174,18 @@ function getPagesEntry(pages) {
   return entries;
 }
 
+function getVendors(pkg, options) {
+  return Object.keys(pkg.dependencies).concat(options.additionalDllLibs);
+}
+
+function createDllCompiler(bootSsrModuleDir, options) {
+  const packageJson = path.join(options.projectDirectory, 'package.json');
+  const vendors = getVendors(require(packageJson), options);
+  let compiler = webpack(dllConfig(vendors, bootSsrModuleDir, options));
+  compiler.outputFileSystem = new MemoryFileSystem();
+  return compiler;
+}
+
 function createCompiler(bootSsrModuleDir, options) {
   const entries = getPagesEntry(options.pages);
   entries['client'] = path.join(bootSsrModuleDir, "src/client/client.js");
@@ -144,4 +195,7 @@ function createCompiler(bootSsrModuleDir, options) {
   return compiler;
 }
 
-module.exports = createCompiler;
+module.exports = {
+  createCompiler: createCompiler,
+  createDllCompiler: createDllCompiler
+};

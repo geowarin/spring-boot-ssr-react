@@ -45,6 +45,9 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         try {
             // https://github.com/facebook/react/issues/6451
             v8Script.execute(ClassPathResource("object.assign.polyfill.js"))
+            if (getAssetStore().hasAsset("vendors.dll.js")) {
+                v8Script.execute("vendors.dll.js")
+            }
             v8Script.execute("common.js")
             val rendererFun = v8Script.executeAndGet("renderer.js") as V8Function
             val component = v8Script.executeAndGet(url) as V8Function
@@ -78,17 +81,21 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         return errorTemplate
     }
 
-    private fun indexTemplate(componentPropsJson: String, renderedHtml: String, cssUrls:List<String>): String {
+    private fun indexTemplate(componentPropsJson: String, renderedHtml: String, cssUrls: List<String>): String {
         val builder = HtmlTemplate.fromResource(ClassPathResource("templates/index.html"))
-                .insertScriptTag("common.js")
+        cssUrls.forEach { url ->
+            builder.insertCssTag(url)
+        }
+        if (getAssetStore().hasAsset("vendors.dll.js")) {
+            builder.insertScriptTag("vendors.dll.js")
+        }
+
+        builder.insertScriptTag("common.js")
                 .insertScriptTag("$url?modulePath=window.currentComponent")
                 .insertScript("window.currentProps = $componentPropsJson;")
                 .insertScriptTag("client.js")
                 .replaceNodeContent("#app", renderedHtml)
 
-        cssUrls.forEach { url ->
-            builder.insertCssTag(url)
-        }
         val finalHtml = builder.toString()
         return finalHtml
     }

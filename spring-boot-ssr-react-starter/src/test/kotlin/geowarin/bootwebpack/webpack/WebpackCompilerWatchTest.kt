@@ -32,11 +32,12 @@ class WebpackCompilerWatchTest {
 
         val options = WebpackCompilerOptions(
                 bootSsrDirectory = "../spring-boot-ssr-react-node".toPath(),
+                projectDirectory = tmpPage.parent,
                 pages = listOf(Page(path = tmpPage, name = "page1")),
                 watchDirectories = listOf(rootDir)
         )
 
-        val watchObservable = WebpackCompiler().watchAsync(options)
+        val watchObservable = DefaultWebpackCompiler().watchAsync(options)
 
         for (i in (0..5)) {
             tmpPage.changeContents(newContentPath = "watch/page1.js")

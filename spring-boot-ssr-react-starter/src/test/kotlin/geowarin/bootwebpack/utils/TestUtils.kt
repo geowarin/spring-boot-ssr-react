@@ -18,6 +18,16 @@ fun pageOptions(vararg pagePaths: String): WebpackCompilerOptions {
     val pages = pagePaths.map { ClassPathResource(it).file.toPath() }
     return WebpackCompilerOptions(
             bootSsrDirectory = "../spring-boot-ssr-react-node".toPath(),
+            projectDirectory = pages.first().parent,
+            pages = toPages(*pages.toTypedArray())
+    )
+}
+
+fun pageOptions(projectDir: Path, vararg pagePaths: String): WebpackCompilerOptions {
+    val pages = pagePaths.map { ClassPathResource(it).file.toPath() }
+    return WebpackCompilerOptions(
+            bootSsrDirectory = "../spring-boot-ssr-react-node".toPath(),
+            projectDirectory = projectDir,
             pages = toPages(*pages.toTypedArray())
     )
 }
@@ -28,7 +38,8 @@ fun toPages(vararg pagePaths: Path): List<Page> {
 
 infix fun CompilationResult.shouldContainAssets(assets: Iterable<String>?) {
     if (this.hasErrors()) {
-        throw AssertionError("Compilation should be successful: " + this.errors.first().message)
+        val first = this.errors.first()
+        throw AssertionError("Compilation should be successful: " + first.toString())
     }
     val assetsNames = this.assets.map { it.name }.sorted()
     assetsNames shouldEqual assets

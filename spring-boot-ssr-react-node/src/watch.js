@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const createCompiler = require('./createCompiler');
+const createCompiler = require('./createCompiler').createCompiler;
 const getAssets = require('./getAssets');
 
 function watch(options, errorCallback, compilationCallback) {
@@ -16,7 +16,7 @@ function watch(options, errorCallback, compilationCallback) {
   compiler.watch(watchOptions, (err, stats) => {
 
     if (err) {
-      errorCallback(err.message);
+      errorCallback(err);
 
     } else {
 

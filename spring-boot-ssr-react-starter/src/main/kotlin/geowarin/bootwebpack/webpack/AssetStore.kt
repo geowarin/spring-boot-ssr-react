@@ -15,7 +15,7 @@ open class AssetStore {
     var assets: MutableMap<String, Asset> = mutableMapOf<String, Asset>()
 
     fun store(assets: List<Asset>) {
-        this.assets.clear()
+//        this.assets.clear()
         assets.forEach { this.assets.put(it.name, it) }
     }
 

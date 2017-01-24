@@ -31,18 +31,42 @@ data class Page(
 
 data class WebpackCompilerOptions(
         val bootSsrDirectory: Path,
+        val projectDirectory: Path,
         val pages: List<Page>,
+        val dllManifestContent: String? = null,
+        val additionalDllLibs: List<String>? = listOf(),
         val watchDirectories: List<Path> = listOf()
 ) : V8Convertible<WebpackCompilerOptions>(
         { "pages" mappedBy it.pages },
-        { "watchDirectories" mappedBy it.watchDirectories.map { it.toRealPath().toString() } }
+        { "projectDirectory" mappedBy it.projectDirectory.toRealPath().toString() },
+        { "watchDirectories" mappedBy it.watchDirectories.map { it.toRealPath().toString() } },
+        { "dllManifestContent" mappedBy it.dllManifestContent },
+        { "additionalDllLibs" mappedBy it.additionalDllLibs }
 )
 
-class WebpackCompiler {
+interface WebpackCompiler {
+    fun generateDll(options: WebpackCompilerOptions): CompilationResult
+    fun compile(options: WebpackCompilerOptions): CompilationResult
+    fun watchAsync(options: WebpackCompilerOptions): Flowable<CompilationResult>
+    fun stop()
+}
+
+class DefaultWebpackCompiler : WebpackCompiler {
     val listeners: Queue<WebpackListener> = ConcurrentLinkedQueue()
     lateinit var nodeProcess: NodeProcess
 
-    fun compile(options: WebpackCompilerOptions): CompilationResult {
+    override fun generateDll(options: WebpackCompilerOptions): CompilationResult {
+        val watchScript = options.bootSsrDirectory / "bin/dllEntry.js"
+        val nodeProcess = createNodeProcess(watchScript.toFile(), options)
+        nodeProcess.startAsync()
+
+        val observable = createObservable(BackpressureStrategy.DROP)
+        val compilationResult = observable.blockingFirst()
+        nodeProcess.stop()
+        return compilationResult
+    }
+
+    override fun compile(options: WebpackCompilerOptions): CompilationResult {
         val watchScript = options.bootSsrDirectory / "bin/compileEntry.js"
         val nodeProcess = createNodeProcess(watchScript.toFile(), options)
         nodeProcess.startAsync()
@@ -53,7 +77,7 @@ class WebpackCompiler {
         return compilationResult
     }
 
-    fun watchAsync(options: WebpackCompilerOptions): Flowable<CompilationResult> {
+    override fun watchAsync(options: WebpackCompilerOptions): Flowable<CompilationResult> {
         val watchScript = options.bootSsrDirectory / "bin/watchEntry.js"
         nodeProcess = createNodeProcess(watchScript.toFile(), options)
         nodeProcess.startAsync()
@@ -61,7 +85,7 @@ class WebpackCompiler {
         return createObservable(BackpressureStrategy.BUFFER)
     }
 
-    private fun createObservable(backpressureStrategy: BackpressureStrategy): Flowable<CompilationResult> {
+    fun createObservable(backpressureStrategy: BackpressureStrategy): Flowable<CompilationResult> {
         return Flowable.create({ emitter: FlowableEmitter<CompilationResult> ->
             val compilationListener = { comp: CompilationResult -> emitter.onNext(comp) }
 
@@ -76,7 +100,7 @@ class WebpackCompiler {
         }, backpressureStrategy)
     }
 
-    fun stop() {
+    override fun stop() {
         nodeProcess.stop()
     }
 

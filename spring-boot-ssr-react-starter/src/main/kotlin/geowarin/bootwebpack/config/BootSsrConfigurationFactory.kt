@@ -4,21 +4,50 @@ import geowarin.bootwebpack.extensions.path.*
 import geowarin.bootwebpack.webpack.Page
 import geowarin.bootwebpack.webpack.WebpackCompilerOptions
 import mu.KotlinLogging
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.ApplicationListener
 import java.nio.file.Path
 
-data class BootSsrOptions(
+data class BootSsrConfiguration(
         val webpackCompilerOptions: WebpackCompilerOptions,
         val additionalBuildInfo: AdditionalBuildInfo
 )
 
-data class AdditionalBuildInfo(val pagesDir: Path)
+data class AdditionalBuildInfo(
+        val pagesDir: Path,
+        val projectDir: Path,
+        val jsSourceDir: Path,
+        val webpackAssetsLocation: String,
+        val enableDll: Boolean
+) {
+    fun distDir(assetDestination: Path): Path {
+        return assetDestination / webpackAssetsLocation
+    }
+}
 
-class WebpackOptionFactory {
+class BootSsrConfigurationFactory(
+        val properties: ReactSsrProperties,
+        val projectDirResolver: ProjectDirResolver = DefaultProjectDirResolver(),
+        val shouldCheckPaths:Boolean = true
+) : ApplicationListener<ApplicationReadyEvent> {
+    lateinit var projectDir: Path
+
+    override fun onApplicationEvent(event: ApplicationReadyEvent) {
+        val mainApplicationClass = event.springApplication.mainApplicationClass
+        val projectDirectory = projectDirResolver.resolveProjectDirectory(mainApplicationClass)
+        initializeProjectDir(projectDirectory)
+    }
+
+    // For tests
+    fun initializeProjectDir(projectDirectory: Path) {
+        this.projectDir = projectDirectory
+    }
+
     private val logger = KotlinLogging.logger {}
 
-    fun create(projectDir: Path, properties: ReactSsrProperties): BootSsrOptions {
+    fun create(): BootSsrConfiguration {
         val jsSourceDir = checkJsSourceDir(projectDir / properties.jsSourceDirectory)
-        val bootSsrNodeModulePath = checkNodeModulePath(jsSourceDir, properties.bootSsrNodeModulePath.toPath())
+        val bootSsrNodeModulePath = checkNodeModulePath(jsSourceDir, properties.bootSsrNodeModulePath)
 
         val pagesDirPath = jsSourceDir / properties.pageDir
         val pagesDir = checkPagesDirectory(pagesDirPath)
@@ -27,13 +56,19 @@ class WebpackOptionFactory {
 
         val webpackCompilerOptions = WebpackCompilerOptions(
                 bootSsrDirectory = bootSsrNodeModulePath,
+                projectDirectory = jsSourceDir,
                 pages = pages,
+                additionalDllLibs = properties.additionalDllLibs,
                 watchDirectories = listOf(jsSourceDir)
         )
         val additionalBuildInfo = AdditionalBuildInfo(
-                pagesDir = pagesDir
+                pagesDir = pagesDir,
+                projectDir = projectDir,
+                jsSourceDir = jsSourceDir,
+                webpackAssetsLocation = properties.webpackAssetsLocation,
+                enableDll = properties.isEnableDll
         )
-        return BootSsrOptions(webpackCompilerOptions, additionalBuildInfo)
+        return BootSsrConfiguration(webpackCompilerOptions, additionalBuildInfo)
     }
 
     fun getPages(pagesDir: Path): List<Page> {
@@ -54,28 +89,29 @@ class WebpackOptionFactory {
     private fun withoutExt(path: Path) = path.toString().replaceAfterLast(".", "").dropLast(1)
 
     fun checkPagesDirectory(pagesDirPath: Path): Path {
-        if (!pagesDirPath.exists) {
+        if (shouldCheckPaths && !pagesDirPath.exists) {
             logger.warn { "Pages dir does not exist!" }
         }
         return pagesDirPath
     }
 
-    fun checkNodeModulePath(jsSourceDir: Path, bootSsrNodePath: Path): Path {
+    fun checkNodeModulePath(jsSourceDir: Path, bootSsrNodeDir: String): Path {
 
+        val bootSsrNodePath = jsSourceDir.fileSystem.getPath(bootSsrNodeDir)
         val bootSsrNodeModulePath: Path
         if (bootSsrNodePath.isAbsolute) {
             bootSsrNodeModulePath = bootSsrNodePath
         } else {
             bootSsrNodeModulePath = jsSourceDir / bootSsrNodePath
         }
-        if (bootSsrNodeModulePath.notExists) {
+        if (shouldCheckPaths && bootSsrNodeModulePath.notExists) {
             throw IllegalStateException("Could not find the path to the companion node_module $bootSsrNodeModulePath")
         }
         return bootSsrNodeModulePath
     }
 
     fun checkJsSourceDir(jsSourceDir: Path): Path {
-        if (jsSourceDir.notExists) {
+        if (shouldCheckPaths && jsSourceDir.notExists) {
             throw IllegalStateException("Could not find js source directory $jsSourceDir")
         }
         return jsSourceDir

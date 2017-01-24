@@ -26,7 +26,7 @@ inline fun String.toPath() = Paths.get(this)
  *
  *     root / "foo" / "bar"
  */
-operator fun Path.div(other: String) = div(other.toPath())
+operator fun Path.div(other: String) = resolve(other)
 
 operator fun Path.div(other: Path) = resolve(other)
 operator fun String.div(other: String) = div(other.toPath())

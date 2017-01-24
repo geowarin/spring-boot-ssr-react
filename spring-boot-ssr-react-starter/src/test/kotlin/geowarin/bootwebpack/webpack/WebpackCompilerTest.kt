@@ -1,5 +1,6 @@
 package geowarin.bootwebpack.webpack
 
+import geowarin.bootwebpack.extensions.path.toPath
 import geowarin.bootwebpack.utils.pageOptions
 import geowarin.bootwebpack.utils.shouldContainAssets
 import geowarin.bootwebpack.utils.shouldHaveError
@@ -10,8 +11,18 @@ import org.junit.Test
 class WebpackCompilerTest {
 
     @Test
+    fun dll_generation() {
+        val compilation = DefaultWebpackCompiler().generateDll(
+                // FIXME
+                pageOptions("/Users/geowarin/dev/mgp/myprivateadvisor/src/main/js".toPath())
+        )
+
+        compilation shouldContainAssets listOf("vendors.dll.js", "vendors.manifest.json")
+    }
+
+    @Test
     fun compilation_succeeds() {
-        val compilation = WebpackCompiler().compile(pageOptions("home.js"))
+        val compilation = DefaultWebpackCompiler().compile(pageOptions("home.js"))
 
         compilation shouldContainAssets listOf("client.js", "common.js", "home.js", "renderer.js")
         assert(compilation.compileTime > 0, { -> "Should have a compile time" })
@@ -19,7 +30,7 @@ class WebpackCompilerTest {
 
     @Test
     fun compilation_postcss() {
-        val compilation = WebpackCompiler().compile(pageOptions("css/styled.js"))
+        val compilation = DefaultWebpackCompiler().compile(pageOptions("css/styled.js"))
 
         val source = compilation.source { it.name.endsWith("css") }
         source shouldEqual """div {
@@ -37,7 +48,7 @@ body div.myClass {
 
     @Test
     fun compilation_fonts() {
-        val compilation = WebpackCompiler().compile(pageOptions("fonts/styled.js"))
+        val compilation = DefaultWebpackCompiler().compile(pageOptions("fonts/styled.js"))
 
         val source = compilation.source { it.name.endsWith("css") }
         source shouldEqual """@font-face {
@@ -50,7 +61,7 @@ body div.myClass {
 
     @Test
     fun compilation_errors() {
-        val compilation = WebpackCompiler().compile(pageOptions("syntaxError.js"))
+        val compilation = DefaultWebpackCompiler().compile(pageOptions("syntaxError.js"))
 
         compilation shouldHaveError "Module build failed: SyntaxError: Unexpected token"
     }
