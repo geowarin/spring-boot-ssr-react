@@ -126,6 +126,8 @@ const config = (entries, rootDir, options) => createConfig([
   postcss([
     require('postcss-import'),
     require('postcss-url'),
+    require('postcss-custom-media'),
+    require('postcss-media-minmax'),
     require('postcss-color-function'),
     require('autoprefixer'),
     require('postcss-custom-properties'),

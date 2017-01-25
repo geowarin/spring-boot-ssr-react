@@ -2531,6 +2531,12 @@ postcss-convert-values@^2.3.4:
     postcss "^5.0.11"
     postcss-value-parser "^3.1.2"
 
+postcss-custom-media@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/postcss-custom-media/-/postcss-custom-media-5.0.1.tgz#138d25a184bf2eb54de12d55a6c01c30a9d8bd81"
+  dependencies:
+    postcss "^5.0.0"
+
 postcss-custom-properties@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/postcss-custom-properties/-/postcss-custom-properties-5.0.1.tgz#e07d4f6c78e547cf04274f120f490d236e33ea19"
@@ -2618,6 +2624,12 @@ postcss-loader@^1.2.0:
     object-assign "^4.1.0"
     postcss "^5.2.9"
     postcss-load-config "^1.1.0"
+
+postcss-media-minmax@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/postcss-media-minmax/-/postcss-media-minmax-2.1.2.tgz#444c5cf8926ab5e4fd8a2509e9297e751649cdf8"
+  dependencies:
+    postcss "^5.0.4"
 
 postcss-merge-idents@^2.1.5:
   version "2.1.7"
