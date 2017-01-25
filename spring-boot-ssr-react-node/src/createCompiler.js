@@ -92,6 +92,7 @@ const dllConfig = (vendors, rootDir, options) => createConfig([
       name: 'vendors_library'
     })
   ]),
+  wp.sourceMaps('inline-source-map'),
   wp.customConfig({
     context: options.projectDirectory,
     resolve: {

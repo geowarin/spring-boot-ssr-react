@@ -2,7 +2,6 @@ package geowarin.bootwebpack
 
 import geowarin.bootwebpack.conditions.ConditionalOnDevelopmentMode
 import geowarin.bootwebpack.conditions.ConditionalOnProductionMode
-import geowarin.bootwebpack.config.BootSsrConfiguration
 import geowarin.bootwebpack.config.ReactSsrProperties
 import geowarin.bootwebpack.config.RunMode
 import geowarin.bootwebpack.config.BootSsrConfigurationFactory
@@ -61,14 +60,6 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
         return BootSsrConfigurationFactory(properties)
     }
 
-//    @Bean
-//    @ConditionalOnDevelopmentMode
-//    open fun dll(assetStore: AssetStore) = CommandLineRunner {
-//        val webpackOptionFactory = WebpackOptionFactory()
-//        val options = webpackOptionFactory.create(projectDir.toPath(), properties)
-//        WebpackCompiler().generateDll()
-//    }
-
     @Configuration
     @ConditionalOnClass(OptionalLiveReloadServer::class)
     open class WithLivereload {
@@ -89,7 +80,7 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
         @ConditionalOnDevelopmentMode
         @RestartScope
         open fun webpackWatcher(assetStore: AssetStore, configurationFactory: BootSsrConfigurationFactory): WebpackWatcher {
-            return WebpackWatcher(assetStore, configurationFactory, { })
+            return WebpackWatcher(assetStore, configurationFactory)
         }
     }
 

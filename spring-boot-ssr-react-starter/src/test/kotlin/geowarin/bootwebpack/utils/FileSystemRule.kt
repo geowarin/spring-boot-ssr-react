@@ -42,7 +42,10 @@ class FileSystemRule(val configuration: Configuration = Configuration.forCurrent
         if (path.fileExtension.isEmpty()) {
             Files.createDirectories(path)
         } else {
-            Files.createDirectories(path.parent)
+            val parent = path.parent
+            if (parent != null) {
+                Files.createDirectories(parent)
+            }
             Files.createFile(path)
         }
         return path

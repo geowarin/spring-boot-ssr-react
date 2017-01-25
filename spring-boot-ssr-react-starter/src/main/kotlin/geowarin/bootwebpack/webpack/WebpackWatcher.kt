@@ -3,6 +3,7 @@ package geowarin.bootwebpack.webpack
 import geowarin.bootwebpack.config.BootSsrConfiguration
 import geowarin.bootwebpack.config.BootSsrConfigurationFactory
 import geowarin.bootwebpack.files.WatchEventObservable
+import geowarin.bootwebpack.webpack.dll.DllCompiler
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import mu.KotlinLogging
@@ -10,9 +11,14 @@ import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationListener
 import java.nio.charset.StandardCharsets
 
+
 typealias Refresher = () -> Unit
 
-open class WebpackWatcher(val assetStore: AssetStore, val configurationFactory: BootSsrConfigurationFactory, val refresher: Refresher) : ApplicationListener<ApplicationReadyEvent> {
+open class WebpackWatcher(val assetStore: AssetStore,
+                          val configurationFactory: BootSsrConfigurationFactory,
+                          val refresher: Refresher = {},
+                          val webpackCompiler: WebpackCompiler = DefaultWebpackCompiler()
+) : ApplicationListener<ApplicationReadyEvent> {
     private val logger = KotlinLogging.logger {}
     private var vendorsManifest: Asset? = null
 
@@ -33,21 +39,13 @@ open class WebpackWatcher(val assetStore: AssetStore, val configurationFactory: 
     }
 
     private fun generateDll(config: BootSsrConfiguration) {
-
-        logger.info { "Generating DLL..." }
-        val dllCompilation = DefaultWebpackCompiler().generateDll(config.webpackCompilerOptions)
-        val vendors = dllCompilation.assets.find { it.name == "vendors.dll.js" } ?: throw IllegalStateException()
-        assetStore.store(listOf(vendors))
-        vendorsManifest = dllCompilation.assets.find { it.name == "vendors.manifest.json" }
-        logger.info { "Generated DLL in ${dllCompilation.compileTime}ms" }
-
-//        WebpackCompilationWriter().write(dllCompilation, config.additionalBuildInfo.jsSourceDir / "dll")
+        val dllAssets = DllCompiler(webpackCompiler).generateDll(config)
+        assetStore.store(listOf(dllAssets.vendorsJs))
+        vendorsManifest = dllAssets.vendorsManifest
     }
 
     fun watch(config: BootSsrConfiguration) {
         val pagesDir = config.additionalBuildInfo.pagesDir
-
-        val webpackCompiler = DefaultWebpackCompiler()
         var subscription: Disposable? = null
 
         WatchEventObservable
