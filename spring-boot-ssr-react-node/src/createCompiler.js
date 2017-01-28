@@ -13,6 +13,8 @@ const babel = require('@webpack-blocks/babel6');
 const extractText = require('@webpack-blocks/extract-text2');
 const postcss = require('@webpack-blocks/postcss');
 
+const resolve = require('resolve');
+
 function resolveLoaders(modules) {
   return () => ({
     resolveLoader: {
@@ -23,14 +25,38 @@ function resolveLoaders(modules) {
   });
 }
 
+function resolveProj(moduleName, options) {
+  try {
+    return resolve.sync(moduleName, {basedir: options.projectDirectory})
+  } catch (e) {
+    return resolve.sync(moduleName, {basedir: options.bootSsrModuleDir})
+  }
+}
+
 const babelPresets = [
-  require.resolve('babel-preset-latest'),
+  [require.resolve('babel-preset-latest'), {
+    "es2015": {
+      "modules": false
+    }
+  }],
   require.resolve('babel-preset-react')
 ];
-const babelPlugins = [
+const babelPlugins = (options) => [
   require.resolve('babel-plugin-transform-decorators-legacy'),
   require.resolve('babel-plugin-transform-class-properties'),
-  require.resolve('babel-plugin-transform-object-rest-spread')
+  require.resolve('babel-plugin-transform-object-rest-spread'),
+  [
+    require.resolve('babel-plugin-module-resolver'),
+    {
+      alias: {
+        react: resolveProj('react', options),
+        "react-dom": resolveProj('react-dom', options),
+        "react-dom/server": resolveProj('react-dom/server', options),
+        // "axios": require.resolve('axios'),
+        // "little-loader": require.resolve('little-loader')
+      }
+    }
+  ]
 ];
 
 let uglifyJs = function () {
@@ -97,8 +123,9 @@ const dllConfig = (vendors, rootDir, options) => createConfig([
     context: options.projectDirectory,
     resolve: {
       modules: [
-        './node_modules',
-        path.join(rootDir, 'node_modules'),
+        // can resolve modules in linked dir
+        './node_modules'
+        // path.join(rootDir, 'node_modules'),
       ],
       extensions: ['.js', '.jsx']
     }
@@ -135,7 +162,7 @@ const config = (entries, rootDir, options) => createConfig([
   ]),
   babel({
     presets: babelPresets,
-    plugins: babelPlugins
+    plugins: babelPlugins(options)
   }),
   wp.addPlugins([
     new webpack.optimize.CommonsChunkPlugin({name: 'common'}),
@@ -149,10 +176,11 @@ const config = (entries, rootDir, options) => createConfig([
   wp.customConfig({
     context: options.projectDirectory,
     resolve: {
-      modules: [
-        './node_modules',
-        path.join(rootDir, 'node_modules'),
-      ],
+      // modules: [
+      //   './node_modules',
+        // can resolve modules in linked dir
+        // path.join(rootDir, 'node_modules')
+      // ],
       extensions: ['.js', '.jsx']
     }
   }),
@@ -162,7 +190,7 @@ const config = (entries, rootDir, options) => createConfig([
   ]),
   core.env('production', [
     wp.addPlugins([
-      uglifyJs()
+      // uglifyJs()
     ])
   ])
 ]);
@@ -181,19 +209,20 @@ function getVendors(pkg, options) {
   return Object.keys(pkg.dependencies).concat(options.additionalDllLibs);
 }
 
-function createDllCompiler(bootSsrModuleDir, options) {
+function createDllCompiler(options) {
   const packageJson = path.join(options.projectDirectory, 'package.json');
   const vendors = getVendors(require(packageJson), options);
-  let compiler = webpack(dllConfig(vendors, bootSsrModuleDir, options));
+  let compiler = webpack(dllConfig(vendors, options.bootSsrModuleDir, options));
   compiler.outputFileSystem = new MemoryFileSystem();
   return compiler;
 }
 
-function createCompiler(bootSsrModuleDir, options) {
+function createCompiler(options) {
   const entries = getPagesEntry(options.pages);
-  entries['client'] = path.join(bootSsrModuleDir, "src/client/client.js");
-  entries['renderer'] = path.join(bootSsrModuleDir, "src/server/renderer.js");
-  let compiler = webpack(config(entries, bootSsrModuleDir, options));
+  // entries['react-things'] = ['react', 'react-dom'];
+  entries['client'] = path.join(options.bootSsrModuleDir, "src/client/client.js");
+  entries['renderer'] = path.join(options.bootSsrModuleDir, "src/server/renderer.js");
+  let compiler = webpack(config(entries, options.bootSsrModuleDir, options));
   compiler.outputFileSystem = new MemoryFileSystem();
   return compiler;
 }

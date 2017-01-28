@@ -3,12 +3,12 @@
 const path = require('path');
 const createCompiler = require('./createCompiler').createDllCompiler;
 const getAssets = require('./getAssets');
+const extractErrors = require('./extractWebpackErrors');
 
 function compile(options, errorCallback, compilationCallback) {
 
-  const bootSsrModuleDir = path.join(__dirname, '..');
-
-  const compiler = createCompiler(bootSsrModuleDir, options);
+  options.bootSsrModuleDir = path.join(__dirname, '..');
+  const compiler = createCompiler(options);
 
   compiler.run((err, stats) => {
 
@@ -28,7 +28,7 @@ function compile(options, errorCallback, compilationCallback) {
       };
 
       compilationCallback(
-        stats.compilation.errors,
+        extractErrors(stats.compilation.errors),
         stats.compilation.warnings,
         getAssets(stats.compilation).concat(manifestAsset),
         stats.endTime - stats.startTime

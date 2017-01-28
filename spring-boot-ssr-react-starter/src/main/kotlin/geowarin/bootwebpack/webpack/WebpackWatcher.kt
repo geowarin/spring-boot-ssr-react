@@ -4,6 +4,7 @@ import geowarin.bootwebpack.config.BootSsrConfiguration
 import geowarin.bootwebpack.config.BootSsrConfigurationFactory
 import geowarin.bootwebpack.files.WatchEventObservable
 import geowarin.bootwebpack.webpack.dll.DllCompiler
+import geowarin.bootwebpack.webpack.errors.ErrorLogger
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import mu.KotlinLogging
@@ -86,9 +87,7 @@ open class WebpackWatcher(val assetStore: AssetStore,
     fun onCompilationResult(res: CompilationResult) {
 
         if (res.hasErrors()) {
-            val error = res.errors.first()
-            // todo: display more info (source, stack)
-            logger.error { "\n" + error.message }
+            ErrorLogger().displayErrors(res.errors)
         }
 
         val assets = res.assets

@@ -3,13 +3,14 @@
 const path = require('path');
 const createCompiler = require('./createCompiler').createCompiler;
 const getAssets = require('./getAssets');
+const extractErrors = require('./extractWebpackErrors');
 
 function watch(options, errorCallback, compilationCallback) {
 
-  const bootSsrModuleDir = path.join(__dirname, '..');
+  options.bootSsrModuleDir = path.join(__dirname, '..');
 
   // TODO: hot reloading
-  const compiler = createCompiler(bootSsrModuleDir, options);
+  const compiler = createCompiler(options);
   const watchOptions = {
     aggregateTimeout: 300
   };
@@ -21,7 +22,7 @@ function watch(options, errorCallback, compilationCallback) {
     } else {
 
       compilationCallback(
-        stats.compilation.errors,
+        extractErrors(stats.compilation.errors),
         stats.compilation.warnings,
         getAssets(stats.compilation),
         stats.endTime - stats.startTime

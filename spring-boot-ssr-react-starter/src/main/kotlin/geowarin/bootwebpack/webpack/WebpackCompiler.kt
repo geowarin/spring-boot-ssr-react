@@ -14,7 +14,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 typealias CompilationListener = (CompilationResult) -> Unit
-typealias ErrorListener = (Error) -> Unit
+typealias ErrorListener = (V8Error) -> Unit
 
 data class WebpackListener(
         val compilationListener: CompilationListener,
@@ -89,7 +89,7 @@ class DefaultWebpackCompiler : WebpackCompiler {
         return Flowable.create({ emitter: FlowableEmitter<CompilationResult> ->
             val compilationListener = { comp: CompilationResult -> emitter.onNext(comp) }
 
-            val errorListener = { error: Error ->
+            val errorListener = { error: V8Error ->
                 val exception = Exception(error.toString())
                 emitter.onError(exception)
             }
@@ -109,7 +109,7 @@ class DefaultWebpackCompiler : WebpackCompiler {
         nodeProcess.addObj("options", options)
 
         nodeProcess.registerJavaMethod("errorCallback") { args ->
-            val error = Error.create(exception = args[0] as V8Object)
+            val error = V8Error.create(exception = args[0] as V8Object)
             for (listener in listeners) {
                 listener.errorListener.invoke(error)
             }
@@ -133,10 +133,37 @@ class DefaultWebpackCompiler : WebpackCompiler {
     }
 }
 
-data class Error(val message: String, val stack: String) {
+open class JsError(val message:String, val stack:String)
+
+class WebpackError(message: String, stack: String, val file: String?, val severity: Int, val name: String): JsError(message, stack) {
     companion object Factory {
-        fun create(exception: V8Object): Error {
-            val error = Error(exception.getString("message"), exception.getString("stack"))
+        fun create(exception: V8Object): WebpackError {
+            val webpackError = exception.getObject("webpackError")
+            val error = WebpackError(
+                    message = exception.getString("message"),
+                    file = exception.getString("file"),
+                    name = exception.getString("name"),
+                    severity = exception.getInteger("severity"),
+                    stack = webpackError.getString("stack")
+            )
+            webpackError.release()
+            exception.release()
+            return error
+        }
+    }
+
+    override fun toString(): String {
+        return "$message in $file\n$stack"
+    }
+}
+
+class V8Error(message: String, stack: String): JsError(message, stack) {
+    companion object Factory {
+        fun create(exception: V8Object): V8Error {
+            val error = V8Error(
+                    message = exception.getString("message"),
+                    stack = exception.getString("stack")
+            )
             exception.release()
             return error
         }
@@ -161,7 +188,7 @@ data class Warning(val message: String) {
     }
 }
 
-class CompilationResult(val errors: List<Error>, val warnings: List<Warning>, val assets: List<Asset>, val compileTime: Int) {
+class CompilationResult(val errors: List<WebpackError>, val warnings: List<Warning>, val assets: List<Asset>, val compileTime: Int) {
     fun hasErrors() = errors.isNotEmpty()
     fun hasWarnings() = warnings.isNotEmpty()
 
@@ -173,7 +200,7 @@ class CompilationResult(val errors: List<Error>, val warnings: List<Warning>, va
             val assets = toObjs(assetsArray)
 
             val compilationResult = CompilationResult(
-                    errors.map { Error.create(it) },
+                    errors.map { WebpackError.create(it) },
                     warnings.map { Warning.create(it) },
                     assets.map(::Asset),
                     compileTime

@@ -8,6 +8,7 @@ import geowarin.bootwebpack.extensions.path.writeBytes
 import geowarin.bootwebpack.webpack.CompilationResult
 import geowarin.bootwebpack.webpack.DefaultWebpackCompiler
 import geowarin.bootwebpack.webpack.WebpackCompiler
+import geowarin.bootwebpack.webpack.errors.ErrorLogger
 import mu.KotlinLogging
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.SpringApplication
@@ -24,7 +25,8 @@ class WebpackCompilationWriter {
 
     fun write(compilationResult: CompilationResult, distDir: Path) {
         if (compilationResult.hasErrors()) {
-            throw Error("Webpack build encountered errors: " + compilationResult.errors.first().toString())
+            ErrorLogger().displayErrors(compilationResult.errors)
+            throw Error("Webpack build encountered errors")
         }
 
         compilationResult.warnings.forEach { warning ->

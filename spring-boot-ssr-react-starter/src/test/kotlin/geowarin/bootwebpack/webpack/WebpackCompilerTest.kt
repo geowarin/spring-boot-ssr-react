@@ -63,6 +63,16 @@ body div.myClass {
     fun compilation_errors() {
         val compilation = DefaultWebpackCompiler().compile(pageOptions("syntaxError.js"))
 
-        compilation shouldHaveError "Module build failed: SyntaxError: Unexpected token"
+        compilation shouldHaveError """ERROR in ./build/resources/test/syntaxError.js:
+SyntaxError: Unexpected token (6:19)
+
+  4 |${" "}
+  5 |     render() {
+> 6 |         return <div</div>;
+    |                    ^
+  7 |     }
+  8 | }
+
+"""
     }
 }

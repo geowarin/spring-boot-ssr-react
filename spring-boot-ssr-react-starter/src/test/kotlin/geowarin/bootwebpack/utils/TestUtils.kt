@@ -6,6 +6,7 @@ import geowarin.bootwebpack.webpack.Asset
 import geowarin.bootwebpack.webpack.CompilationResult
 import geowarin.bootwebpack.webpack.Page
 import geowarin.bootwebpack.webpack.WebpackCompilerOptions
+import geowarin.bootwebpack.webpack.errors.ErrorLogger
 import org.amshove.kluent.shouldEqual
 import org.amshove.kluent.shouldEqualTo
 import org.amshove.kluent.shouldStartWith
@@ -38,8 +39,8 @@ fun toPages(vararg pagePaths: Path): List<Page> {
 
 infix fun CompilationResult.shouldContainAssets(assets: Iterable<String>?) {
     if (this.hasErrors()) {
-        val first = this.errors.first()
-        throw AssertionError("Compilation should be successful: " + first.toString())
+        ErrorLogger().displayErrors(errors)
+        throw AssertionError("Compilation should be successful")
     }
     val assetsNames = this.assets.map { it.name }.sorted()
     assetsNames shouldEqual assets
@@ -47,7 +48,8 @@ infix fun CompilationResult.shouldContainAssets(assets: Iterable<String>?) {
 
 fun CompilationResult.source(assetName: String): String {
     if (this.hasErrors()) {
-        throw AssertionError("Compilation should be successful: " + this.errors.first().message)
+        ErrorLogger().displayErrors(errors)
+        throw AssertionError("Compilation should be successful")
     }
     val asset = this.assets.find { it.name == assetName }
     val bytes = asset?.source ?: throw IllegalStateException("Could not find asset $assetName")
@@ -67,8 +69,9 @@ infix fun CompilationResult.shouldHaveError(errorMessage: String) {
     if (!this.hasErrors()) {
         throw AssertionError("Got errors")
     }
-    this.errors.map { it.message }.size shouldEqualTo 1
-    this.errors[0].message shouldStartWith errorMessage
+    this.errors.size shouldEqualTo 1
+    val errorsLogs = ErrorLogger().getErrorsLogs(errors)
+    errorsLogs.first() shouldEqual errorMessage
 }
 
 fun String.asTmpFile(): File {
