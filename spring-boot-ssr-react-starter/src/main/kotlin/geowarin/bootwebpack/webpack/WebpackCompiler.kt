@@ -33,15 +33,34 @@ data class WebpackCompilerOptions(
         val bootSsrDirectory: Path,
         val projectDirectory: Path,
         val pages: List<Page>,
+        /**
+         * FIXME: only in watch
+         */
         val dllManifestContent: String? = null,
+        /**
+         * only in compile
+         */
+        val minify:Boolean = true,
+        /**
+         * only in compile
+         */
+        val generateStats:Boolean = false,
+        /**
+         * only in generateDll
+         */
         val additionalDllLibs: List<String>? = listOf(),
+        /**
+         * only in watch
+         */
         val watchDirectories: List<Path> = listOf()
 ) : V8Convertible<WebpackCompilerOptions>(
         { "pages" mappedBy it.pages },
         { "projectDirectory" mappedBy it.projectDirectory.toRealPath().toString() },
         { "watchDirectories" mappedBy it.watchDirectories.map { it.toRealPath().toString() } },
         { "dllManifestContent" mappedBy it.dllManifestContent },
-        { "additionalDllLibs" mappedBy it.additionalDllLibs }
+        { "additionalDllLibs" mappedBy it.additionalDllLibs },
+        { "minify" mappedBy it.minify },
+        { "generateStats" mappedBy it.generateStats }
 )
 
 interface WebpackCompiler {

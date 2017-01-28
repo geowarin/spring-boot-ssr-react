@@ -59,7 +59,9 @@ class BootSsrConfigurationFactory(
                 projectDirectory = jsSourceDir,
                 pages = pages,
                 additionalDllLibs = properties.additionalDllLibs,
-                watchDirectories = listOf(jsSourceDir)
+                watchDirectories = listOf(jsSourceDir),
+                minify = properties.build.isMinify,
+                generateStats = properties.build.isGenerateStats
         )
         val additionalBuildInfo = AdditionalBuildInfo(
                 pagesDir = pagesDir,

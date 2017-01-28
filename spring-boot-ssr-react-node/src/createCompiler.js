@@ -59,18 +59,6 @@ const babelPlugins = (options) => [
   ]
 ];
 
-let uglifyJs = function () {
-  return new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      warnings: false
-    },
-    output: {
-      comments: false
-    },
-    screwIe8: true,
-    sourceMap: false
-  });
-};
 
 function createConfig(configSetters) {
   return core.createConfig(webpack, [createBaseConfig].concat(configSetters))
@@ -104,6 +92,23 @@ function createBaseConfig(context) {
     }
   }
 }
+
+let uglifyJs = function (options) {
+  if (options.minify === false) {
+    return [];
+  }
+
+  return [new webpack.optimize.UglifyJsPlugin({
+    compress: {
+      warnings: false
+    },
+    output: {
+      comments: false
+    },
+    screwIe8: true,
+    sourceMap: false
+  })];
+};
 
 const dllConfig = (vendors, rootDir, options) => createConfig([
   wp.entryPoint(vendors),
@@ -165,7 +170,7 @@ const config = (entries, rootDir, options) => createConfig([
     plugins: babelPlugins(options)
   }),
   wp.addPlugins([
-    new webpack.optimize.CommonsChunkPlugin({name: 'common'}),
+    new webpack.optimize.CommonsChunkPlugin({name: 'common', minChunks: options.pages.length}),
     new SaneWatcherPlugin({watchDirectories: options.watchDirectories})
   ]),
   extractText('[name].[contenthash:8].css'),
@@ -189,9 +194,10 @@ const config = (entries, rootDir, options) => createConfig([
     wp.addPlugins(dllPlugin(options))
   ]),
   core.env('production', [
-    wp.addPlugins([
-      // uglifyJs()
-    ])
+    wp.setOutput({
+      filename: '[name]-[chunkhash].js'
+    }),
+    wp.addPlugins(uglifyJs(options))
   ])
 ]);
 
@@ -219,7 +225,6 @@ function createDllCompiler(options) {
 
 function createCompiler(options) {
   const entries = getPagesEntry(options.pages);
-  // entries['react-things'] = ['react', 'react-dom'];
   entries['client'] = path.join(options.bootSsrModuleDir, "src/client/client.js");
   entries['renderer'] = path.join(options.bootSsrModuleDir, "src/server/renderer.js");
   let compiler = webpack(config(entries, options.bootSsrModuleDir, options));

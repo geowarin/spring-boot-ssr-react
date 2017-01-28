@@ -37,9 +37,9 @@ open class AssetStore {
             if (modulePath != null) {
                 val prefix = modulePath + " = "
                 val source = String(asset.source)
-                return WebpackResource((prefix + source).toByteArray(), asset.name)
+                return WebpackResource(asset.name, (prefix + source).toByteArray(), asset.lastModified)
             } else {
-                return WebpackResource(asset.source, asset.name)
+                return WebpackResource(asset.name, asset.source, asset.lastModified)
             }
         }
         return null
@@ -54,18 +54,18 @@ open class AssetStore {
     }
 }
 
-class WebpackResource(byteArray: ByteArray?, val fileName: String) : ByteArrayResource(byteArray) {
+class WebpackResource(val fileName: String, byteArray: ByteArray?, val lastModified:Long = 0) : ByteArrayResource(byteArray) {
 
     override fun getFilename(): String {
         return fileName
     }
 
     override fun lastModified(): Long {
-        return 0
+        return lastModified
     }
 }
 
-data class Asset(val name: String, val source: ByteArray) {
+class Asset(val name: String, val source: ByteArray, val lastModified: Long = 0) {
     constructor(obj: V8Object) : this(name = obj.getString("name"), source = getSourceAsByteArray(obj))
 }
 

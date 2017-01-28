@@ -18,15 +18,12 @@ function compile(options, errorCallback, compilationCallback) {
 
     } else {
 
-      // fs.writeFileSync(path.join(options.projectDirectory, '.react-ssr/webpack-stats.json'), JSON.stringify(stats.toJson(), null, 2));
-      //
-      // console.log(stats.toString({
-      //   children: false,
-      //   chunks: true,
-      //   colors: true,
-      //   modules: true,
-      //   maxModules: Infinity
-      // }));
+      if (options.generateStats) {
+        fs.writeFileSync(
+          path.join(options.projectDirectory, '.react-ssr/webpack-stats.json'),
+          JSON.stringify(stats.toJson(), null, 2)
+        );
+      }
 
       compilationCallback(
         extractErrors(stats.compilation.errors),

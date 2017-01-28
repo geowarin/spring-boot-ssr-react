@@ -40,9 +40,57 @@ public class ReactSsrProperties {
      */
     private String webpackAssetsLocation = "webpack_assets";
 
+    /**
+     * Bundles all your production dependencies (listed in your package.json)
+     * in a file that will be cached and use in development for faster build
+     * and reload times
+     */
     private boolean enableDll = false;
 
+    /**
+     * By default, all your production dependencies (listed in your package.json)
+     * are included in the DLL file, but you can add additional modules
+     * here
+     */
     private List<String> additionalDllLibs = new ArrayList<>();
+
+    /**
+     * Build options
+     */
+    private final Build build = new Build();
+
+    public static class Build {
+        /**
+         * Should we generate a minified version of your assets?
+         * Disable it only for debugging purposes
+         */
+        private boolean minify = true;
+
+        /**
+         * When you build, you can generate a json file containing
+         * all your assets (.react-ssr/webpack-stats.json).
+         *
+         * This file can be analyzed to optimize your build size.
+         * See: http://survivejs.com/webpack/optimizing-build/analyzing-build-statistics/
+         */
+        private boolean generateStats = false;
+
+        public boolean isMinify() {
+            return minify;
+        }
+
+        public void setMinify(boolean minify) {
+            this.minify = minify;
+        }
+
+        public boolean isGenerateStats() {
+            return generateStats;
+        }
+
+        public void setGenerateStats(boolean generateStats) {
+            this.generateStats = generateStats;
+        }
+    }
 
     public String getBootSsrNodeModulePath() {
         return bootSsrNodeModulePath;
@@ -98,5 +146,9 @@ public class ReactSsrProperties {
 
     public void setAdditionalDllLibs(List<String> additionalDllLibs) {
         this.additionalDllLibs = additionalDllLibs;
+    }
+
+    public Build getBuild() {
+        return build;
     }
 }
