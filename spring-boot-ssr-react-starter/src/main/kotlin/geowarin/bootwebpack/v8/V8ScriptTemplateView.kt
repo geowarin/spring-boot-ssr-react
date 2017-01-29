@@ -36,7 +36,8 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
     override fun renderMergedOutputModel(model: Map<String, Any>, request: HttpServletRequest, response: HttpServletResponse) {
 
         if (isJsonContentType(request)) {
-            val modelAndScript = ModelAndScript(model, url)
+            // TODO: test js routing
+            val modelAndScript = ModelAndScript(model, getCurrentChunkName())
             response.writer.write(ObjectMapper().writeValueAsString(modelAndScript))
             return
         }
@@ -45,7 +46,7 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         try {
             // https://github.com/facebook/react/issues/6451
             v8Script.execute(ClassPathResource("object.assign.polyfill.js"))
-            if (getAssetStore().hasAsset("vendors.dll.js")) {
+            if (getAssetStore().hasChunk("vendors.dll.js")) {
                 v8Script.execute("vendors.dll.js")
             }
             v8Script.execute("common.js")
@@ -69,13 +70,15 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         }
     }
 
+    private fun getCurrentChunkName() = getAssetStore().ensureAssetByChunkName(url).name
+
     private fun error(e: V8ScriptException): String {
         val errorTemplate =
                 HtmlTemplate.fromResource(ClassPathResource("templates/error.html"))
                         .template(
                                 "message" to (e.message ?: ""),
                                 "jsStack" to e.jsStackTrace,
-                                "path" to url
+                                "path" to getCurrentChunkName()
                         )
                         .toString()
         return errorTemplate
@@ -86,22 +89,29 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         cssUrls.forEach { url ->
             builder.insertCssTag(url)
         }
-        if (getAssetStore().hasAsset("vendors.dll.js")) {
+        if (getAssetStore().hasChunk("vendors.dll.js")) {
             builder.insertScriptTag("vendors.dll.js")
         }
 
-        builder.insertScriptTag("common.js")
-                .insertScriptTag("$url?modulePath=window.currentComponent")
+        val currentChunkName = getCurrentChunkName()
+        builder.insertChunk("common.js")
+                .insertScriptTag("$currentChunkName?modulePath=window.currentComponent")
                 .insertScript("window.currentProps = $componentPropsJson;")
-                .insertScriptTag("client.js")
+                .insertChunk("client.js")
                 .replaceNodeContent("#app", renderedHtml)
 
         val finalHtml = builder.toString()
         return finalHtml
     }
 
+    fun HtmlTemplate.insertChunk(chunkName:String):HtmlTemplate {
+        val chunk = getAssetStore().ensureAssetByChunkName(chunkName).name
+        this.insertScriptTag(chunk)
+        return this
+    }
+
     override fun checkResource(locale: Locale?): Boolean {
-        return getAssetStore().hasAsset(url)
+        return getAssetStore().hasChunk(url)
     }
 
     private fun isJsonContentType(request: HttpServletRequest) =

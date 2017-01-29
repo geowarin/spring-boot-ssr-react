@@ -2,7 +2,6 @@
 
 const path = require('path');
 
-const glob = require('glob');
 const webpack = require('webpack');
 const MemoryFileSystem = require('memory-fs');
 const SaneWatcherPlugin = require('./watcher/SaneWatcherPlugin');
@@ -76,7 +75,7 @@ function createBaseConfig(context) {
           loaders: ['file-loader']
         }, {
           test: context.fileType('application/font'),
-          loaders: ['file-loader?name=fonts/[name][hash].[ext]']
+          loaders: ['file-loader?name=fonts/[name]-[hash].[ext]']
         }, {
           test: context.fileType('audio'),
           loaders: ['url-loader']
@@ -125,15 +124,7 @@ const dllConfig = (vendors, rootDir, options) => createConfig([
   ]),
   wp.sourceMaps('inline-source-map'),
   wp.customConfig({
-    context: options.projectDirectory,
-    resolve: {
-      modules: [
-        // can resolve modules in linked dir
-        './node_modules'
-        // path.join(rootDir, 'node_modules'),
-      ],
-      extensions: ['.js', '.jsx']
-    }
+    context: options.projectDirectory
   })
 ]);
 
@@ -180,14 +171,6 @@ const config = (entries, rootDir, options) => createConfig([
   }),
   wp.customConfig({
     context: options.projectDirectory,
-    resolve: {
-      // modules: [
-      //   './node_modules',
-        // can resolve modules in linked dir
-        // path.join(rootDir, 'node_modules')
-      // ],
-      extensions: ['.js', '.jsx']
-    }
   }),
   core.env('development', [
     wp.sourceMaps('inline-source-map'),
@@ -195,7 +178,7 @@ const config = (entries, rootDir, options) => createConfig([
   ]),
   core.env('production', [
     wp.setOutput({
-      filename: '[name]-[chunkhash].js'
+      filename: '[name]__[chunkhash]__.js'
     }),
     wp.addPlugins(uglifyJs(options))
   ])

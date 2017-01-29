@@ -27,8 +27,8 @@ open class AssetStore {
         return assets.keys.filter { it.endsWith(".css") }
     }
 
-    fun hasAsset(requestPath: String): Boolean {
-        return assets.contains(requestPath)
+    fun hasChunk(chunkName: String): Boolean {
+        return getAssetByChunkName(chunkName) != null
     }
 
     fun getAssetAsResource(requestPath: String, modulePath: String?): Resource? {
@@ -45,12 +45,25 @@ open class AssetStore {
         return null
     }
 
-    fun getAssetSource(requestPath: String): String? {
-        val asset = getAsset(requestPath)
+    fun getAssetSourceByChunkName(chunkName: String): String? {
+        val asset = getAssetByChunkName(chunkName)
         if (asset != null) {
             return String(asset.source)
         }
         return null
+    }
+
+    fun getAssetByChunkName(chunkName: String): Asset? {
+        return assets.values.find { removeHash(it.name) == chunkName }
+    }
+
+    fun ensureAssetByChunkName(chunkName: String): Asset {
+        return assets.values.find { removeHash(it.name) == chunkName }
+                ?: throw IllegalStateException("Could not find chunk $chunkName")
+    }
+
+    private fun removeHash(name: String): String {
+        return name.replace(Regex("__(?:\\w{8,})__"), "")
     }
 }
 

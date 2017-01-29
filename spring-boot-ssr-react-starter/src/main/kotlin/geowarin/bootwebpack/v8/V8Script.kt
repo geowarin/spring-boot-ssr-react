@@ -86,7 +86,7 @@ class V8Script(val assetStore: AssetStore, console: Console = StdoutConsole()) {
     }
 
     fun execute(path: String) {
-        val scriptSrc = assetStore.getAssetSource(path) ?: throw IllegalStateException("Could not find script $path")
+        val scriptSrc = assetStore.getAssetSourceByChunkName(path) ?: throw IllegalStateException("Could not find script $path")
         executeStr(scriptSrc)
     }
 
@@ -103,7 +103,7 @@ class V8Script(val assetStore: AssetStore, console: Console = StdoutConsole()) {
     }
 
     fun executeAndGet(path: String): V8Value {
-        val scriptSrc = assetStore.getAssetSource(path) ?: throw IllegalStateException("Could not find script $path")
+        val scriptSrc = assetStore.getAssetSourceByChunkName(path) ?: throw IllegalStateException("Could not find script $path")
         val module = v8.executeScript(scriptSrc) as V8Object
         toClean.add(module)
         val default = module.get("default") as V8Function

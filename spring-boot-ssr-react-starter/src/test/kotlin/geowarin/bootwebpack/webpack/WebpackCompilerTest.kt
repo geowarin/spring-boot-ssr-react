@@ -52,7 +52,7 @@ body div.myClass {
 
         val source = compilation.source { it.name.endsWith("css") }
         source shouldEqual """@font-face {
-  src: url(fonts/fontello-webfont32194e02049a53df82b262c7294c6a3b.woff2) format('woff2');
+  src: url(fonts/fontello-webfont-32194e02049a53df82b262c7294c6a3b.woff2) format('woff2');
 }
 """
         compilation shouldContainAssets listOf("client.js", "common.js", "fonts/fontello-webfont32194e02049a53df82b262c7294c6a3b.woff2", "renderer.js", "styled.aced6c0a.css", "styled.js")
