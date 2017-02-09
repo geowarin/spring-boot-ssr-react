@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.web.ResourceProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.devtools.autoconfigure.OptionalLiveReloadServer
@@ -27,6 +28,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Configuration
 @EnableConfigurationProperties(ReactSsrProperties::class)
+@ConditionalOnProperty(prefix = "react", name = arrayOf("enabled"), matchIfMissing = true)
 open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
 
     @Autowired
@@ -42,6 +44,7 @@ open class ReactSsrAutoConfiguration : WebMvcConfigurerAdapter() {
     }
 
     @Bean
+    @RestartScope
     open fun assetStore(): AssetStore {
         return AssetStore()
     }

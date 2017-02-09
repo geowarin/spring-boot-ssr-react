@@ -35,6 +35,11 @@ public class ReactSsrProperties {
     private RunMode mode = RunMode.auto;
 
     /**
+     * Disable react compilation/watch
+     */
+    private boolean enabled = true;
+
+    /**
      * When compiled statically, the webpack assets will end up in this
      * directory, in the production jar.
      */
@@ -150,5 +155,13 @@ public class ReactSsrProperties {
 
     public Build getBuild() {
         return build;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
