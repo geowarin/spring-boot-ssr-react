@@ -59,7 +59,7 @@ class BootSsrConfigurationFactory(
                 projectDirectory = jsSourceDir,
                 pages = pages,
                 additionalDllLibs = properties.additionalDllLibs,
-                watchDirectories = listOf(jsSourceDir),
+                watchDirectories = listOf(jsSourceDir, bootSsrNodeModulePath),
                 minify = properties.build.isMinify,
                 generateStats = properties.build.isGenerateStats
         )

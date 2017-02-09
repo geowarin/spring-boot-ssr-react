@@ -52,7 +52,7 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
             v8Script.execute("common.js")
             val rendererFun = v8Script.executeAndGet("renderer.js") as V8Function
             val component = v8Script.executeAndGet(url) as V8Function
-            val renderedHtml = v8Script.executeFunction(rendererFun, component, model, url) as String
+            val renderedHtml = v8Script.executeFunction(rendererFun, component, model, request.servletPath) as String
 
             val componentPropsJson = ObjectMapper().writeValueAsString(model)
 

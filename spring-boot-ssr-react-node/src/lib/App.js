@@ -8,37 +8,31 @@ export default class App extends Component {
     this.cleanup = null;
   }
 
-  componentDidMount () {
-    const { router } = this.props;
+  componentDidMount() {
+    const {router} = this.props;
 
     this.cleanup = router.subscribe(newProps => {
-      try {
-        const state = propsToState({...newProps, router: this.props.router});
-        this.setState(state);
-      } catch (err) {
-        console.error(err)
-      }
+      const state = propsToState({...newProps, router: this.props.router});
+      this.setState(state);
     })
   }
 
-  componentWillUnmount () {
-    if (this.cleanup) this.cleanup()
+  componentWillUnmount() {
+    if (this.cleanup) {
+      this.cleanup();
+    }
   }
 
   componentWillReceiveProps(nextProps) {
     const state = propsToState(nextProps);
-    try {
-      this.setState(state);
-    } catch (err) {
-      console.error(err);
-    }
+    this.setState(state);
   }
 
   render() {
     const {Component, componentProps, router} = this.state;
 
     return (
-      <Component {...componentProps} router={router} />
+      <Component {...componentProps} router={router}/>
     );
   }
 }

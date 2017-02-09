@@ -1,111 +1,98 @@
-import {parse, format} from 'url';
-import axios from 'axios';
-import loadScript from 'little-loader';
+import {parse, format} from "url";
+import axios from "axios";
+import loadScript from "little-loader";
+import {createBrowserHistory} from 'history';
 
-export default class Router {
-  constructor(url = window.location.href) {
+let currentUrl = "";
 
-    this.currentUrl = parse(url, true);
-    this.subscriptions = new Set();
-    this.onPopState = this.onPopState.bind(this);
-
-    if (typeof window.location !== 'undefined') {
-      window.addEventListener('popstate', this.onPopState)
-    }
-  }
-
-  onPopState(e) {
-    const currentUrl = getURL();
-    this.change(null, currentUrl);
-  }
-
-  loadModel(url) {
-    const modelData = axios.get(url, {
-      data: {} // sets content-type to 'application/json'
-    });
-    return modelData.then(r => r.data);
-  }
-
-  loadPage(url) {
-    const parsed = parse(url, true);
-    parsed.query['modulePath'] = 'window.currentComponent';
-    const scriptUrl = format(parsed);
-
-    return new Promise((resolve, reject) => {
-      loadScript(scriptUrl, err => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      })
-    })
-  }
-
-  change(historyMethod, url) {
-    this.loadModel(url).then(modelAndScript => {
-      const {model, script} = modelAndScript;
-      this.loadPage(script).then(() => {
-
-        if (historyMethod) {
-          window.history[historyMethod]({}, null, url);
-        }
-
-        this.notifyListeners({
-          componentProps: {model},
-          Component: window.currentComponent.default
-        });
-      });
-    });
-  }
-
+class BaseRouter {
   back() {
-    window.history.back()
+  }
+
+  get location() {
+    return parse(currentUrl);
   }
 
   push(url) {
-    return this.change('pushState', url)
   }
 
   replace(url) {
-    return this.change('replaceState', url)
   }
 
-  notifyListeners(newProps) {
-    const newUrl = parse(window.location.href, true);
+  subscribe(fn) {
+  }
+}
 
-    if (this.urlIsNew(newUrl)) {
-      this.currentUrl = newUrl;
-      this.notify(newProps)
-    }
+class BrowserRouter {
+  constructor() {
+    this.history = createBrowserHistory();
+    this.history.listen((location, action) => {
+      this._navigate(location.pathname);
+    });
+    this.subscriptions = new Set();
   }
 
-  urlIsNew({pathname, query}) {
-    return this.currentUrl.pathname !== pathname || !shallowEquals(query, this.currentUrl.query)
+  get location() {
+    return this.history.location;
   }
 
-  notify(data) {
-    this.subscriptions.forEach(cb => cb(data))
+  back() {
+    this.history.goBack();
+  }
+
+  push(...args) {
+    this.history.push(...args)
+  }
+
+  replace(...args) {
+    this.history.replace(...args)
   }
 
   subscribe(fn) {
     this.subscriptions.add(fn);
     return () => this.subscriptions.delete(fn);
   }
-}
 
-function getURL() {
-  return window.location.pathname + (window.location.search || '') + (window.location.hash || '')
-}
+  async _navigate(url) {
 
-function shallowEquals(a, b) {
-  for (const i in a) {
-    if (b[i] !== a[i]) return false
+    const {model, script} = await loadModel(url);
+    await loadPage(script);
+    this._notifyListeners({
+      componentProps: {model},
+      Component: window.currentComponent.default
+    });
+    return model;
   }
 
-  for (const i in b) {
-    if (b[i] !== a[i]) return false
+  _notifyListeners(data) {
+    this.subscriptions.forEach(listener => listener(data))
   }
-
-  return true
 }
+
+function loadPage(url) {
+  const parsed = parse(url, true);
+  parsed.query['modulePath'] = 'window.currentComponent';
+  const scriptUrl = format(parsed);
+
+  return new Promise((resolve, reject) => {
+    loadScript(scriptUrl, err => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    })
+  })
+}
+
+function loadModel(url) {
+  const modelData = axios.get(url, {
+    data: {} // sets content-type to 'application/json'
+  });
+  return modelData.then(r => r.data);
+}
+
+export function setUrl(url) {
+  currentUrl = url;
+}
+export default !!(typeof window !== 'undefined' && window.document && window.document.createElement) ? new BrowserRouter() : new BaseRouter();

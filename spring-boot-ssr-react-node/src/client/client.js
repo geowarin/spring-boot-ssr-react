@@ -2,11 +2,10 @@ import domReady from "domready";
 import {createElement} from "react";
 import {render} from "react-dom";
 import App from "../lib/App";
-import Router from '../lib/Router';
+import router from '../lib/Router';
 
 domReady(() => {
 
-  const router = new Router();
   const model = window.currentProps;
   const Component = window.currentComponent.default;
   const appProps = {
