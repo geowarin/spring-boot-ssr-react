@@ -52,7 +52,7 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
             v8Script.execute("common.js")
             val rendererFun = v8Script.executeAndGet("renderer.js") as V8Function
             val component = v8Script.executeAndGet(url) as V8Function
-            val renderedHtml = v8Script.executeFunction(rendererFun, component, model, request.servletPath) as String
+            val renderedHtml = v8Script.executeFunction(rendererFun, component, model, getOriginalUrl(request)) as String
 
             val componentPropsJson = ObjectMapper().writeValueAsString(model)
 
@@ -68,6 +68,14 @@ class V8ScriptTemplateView() : AbstractUrlBasedView() {
         } finally {
             v8Script.release()
         }
+    }
+
+    private fun getOriginalUrl(request: HttpServletRequest): String {
+        val queryString = request.queryString
+        if (queryString != null) {
+            return request.servletPath + "?" + request.queryString
+        }
+        return request.servletPath
     }
 
     private fun getCurrentChunkName() = getAssetStore().ensureAssetByChunkName(url).name
